@@ -240,7 +240,7 @@ class TroubleReportController extends Controller
     public function exportExcel(TroubleReport $troublereport)
     {
         $spreadsheet = IOFactory::load(
-            storage_path('app/templates/Trouble Report Sample.xlsx')
+            resource_path('templates/Trouble Report Sample.xlsx')
         );
 
         $sheet = $spreadsheet->getActiveSheet();

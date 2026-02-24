@@ -81,7 +81,7 @@ class TransferSlipController extends Controller
 
     public function downloadWord(TransferSlip $transferslip)
     {
-        $templatePath = storage_path('app/templates/Transfer Slip Sample.docx');
+        $templatePath = resource_path('templates/Transfer Slip Sample.docx');
         $template = new TemplateProcessor($templatePath);
 
         $template->setValue('transfer_slip_no', $transferslip->transfer_slip_no);
