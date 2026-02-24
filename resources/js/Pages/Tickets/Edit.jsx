@@ -3,16 +3,24 @@ import { useForm } from "@inertiajs/react";
 
 export default function EditTicketModal({ show, ticket, onClose }) {
 
-    /* =========================
-       DROPDOWN DATA (ADDED)
-       — SAME AS create.jsx
-    ========================= */
     const departments = [
         "Accounting", "Admin", "Assembly", "CMM", "COOP", "Deburring",
         "Die Casting", "Die Casting Engineering", "Die Mold", "Facilities",
         "Finance", "GA", "Guard House", "HR", "IMS", "IT",
         "Learning and Development", "Machine Engineering", "Machining", "MRO",
         "New Project", "PPC", "Purchasing", "QC", "Safety", "Sales",
+    ];
+
+    /* ✅ COMPLETE CATEGORY LIST (REFERENCE MATCHED) */
+    const categories = [
+        "Application & System Support",
+        "Hardware Support & Device Setup",
+        "Account & Access Management",
+        "File, Data & Document Management",
+        "Network & Connectivity Support",
+        "IT Operations & Maintenance",
+        "Asset & Equipment Handling",
+        "Security & Permissions",
     ];
 
     const original = useMemo(() => {
@@ -39,14 +47,12 @@ export default function EditTicketModal({ show, ticket, onClose }) {
         }
     );
 
-    // RESET FORM WHEN OPENING A DIFFERENT TICKET
     useEffect(() => {
         if (original) {
             setData(original);
         }
     }, [original]);
 
-    // CHANGE DETECTION
     const hasChanges = useMemo(() => {
         if (!original) return false;
 
@@ -106,7 +112,6 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         />
                     </div>
 
-                    {/* ✅ DEPARTMENT — CHANGED TO DROPDOWN */}
                     <div>
                         <label>Department</label>
                         <select
@@ -125,6 +130,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         </select>
                     </div>
 
+                    {/* ✅ FIXED ONLY — COMPLETE CATEGORY DROPDOWN */}
                     <div>
                         <label>Category</label>
                         <select
@@ -134,11 +140,12 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                                 setData("category", e.target.value)
                             }
                         >
-                            <option value="Network & Connectivity Support">
-                                Network & Connectivity Support
-                            </option>
-                            <option value="Hardware Issue">Hardware Issue</option>
-                            <option value="Software Issue">Software Issue</option>
+                            <option value="">Select Category</option>
+                            {categories.map((c) => (
+                                <option key={c} value={c}>
+                                    {c}
+                                </option>
+                            ))}
                         </select>
                     </div>
 
