@@ -11,10 +11,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
         "New Project", "PPC", "Purchasing", "QC", "Safety", "Sales",
     ];
 
-<<<<<<< HEAD
     /* ✅ COMPLETE CATEGORY LIST (REFERENCE MATCHED) */
-=======
->>>>>>> d59e2c4 (Fix ticket edit categories and record handling)
     const categories = [
         "Application & System Support",
         "Hardware Support & Device Setup",

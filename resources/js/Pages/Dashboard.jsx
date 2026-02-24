@@ -340,7 +340,7 @@ export default function Dashboard({
       {/* =========================
          ✅ YOUR ORIGINAL STATUS MODAL (UNCHANGED)
       ========================= */}
-      {showModal && (
+       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
             className="absolute inset-0 bg-black/60"
@@ -359,9 +359,10 @@ export default function Dashboard({
               {selectedStatus}
             </h2>
 
-            <div className="overflow-x-auto">
+            {/* ✅ INSERTED ONLY — VERTICAL SCROLL */}
+            <div className="overflow-x-auto max-h-[65vh] overflow-y-auto">
               <table className="w-full text-sm border">
-                <thead className="bg-gray-100 text-left text-gray-800">
+                <thead className="bg-gray-100 text-left text-gray-800 sticky top-0 z-10">
                   <tr>
                     <th className="p-2 border text-base font-medium">
                       Employee Name
@@ -378,6 +379,7 @@ export default function Dashboard({
                     </th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {filteredTickets.length > 0 ? (
                     filteredTickets.map((t) => (
