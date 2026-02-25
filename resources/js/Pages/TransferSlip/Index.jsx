@@ -15,8 +15,12 @@ export default function Index({ records = [] }) {
 
     const [showDelete, setShowDelete] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
+    
+    /* ✅ PAGINATION SAFE ACCESS */
+    const recordData = records?.data ?? [];
+    const recordLinks = records?.links ?? [];
 
-    const filteredRecords = records.filter((r) => {
+    const filteredRecords = recordData.filter((r) => {
         const keyword = search.toLowerCase();
         return (
             r.transfer_slip_no?.toLowerCase().includes(keyword) ||

@@ -20,7 +20,7 @@ export default function TicketsIndex({ tickets = [] }) {
     const [activeRowId, setActiveRowId] = useState(null);
     const { flash } = usePage().props;
     const ticketData = tickets?.data ?? [];
-    const ticketLinks = tickets?.meta?.links ?? [];
+    const ticketLinks = tickets?.links ?? [];
 
     const departments = [
         "Accounting", "Admin", "Assembly", "CMM", "COOP", "Deburring",
@@ -43,7 +43,7 @@ export default function TicketsIndex({ tickets = [] }) {
         }
     };
 
-    const filteredTickets = tickets.filter((t) => {
+    const filteredTickets = ticketData.filter((t) => {
         const keyword = search.toLowerCase();
 
         const matchesSearch =

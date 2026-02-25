@@ -14,6 +14,9 @@ export default function TroubleReportIndex({ reports = [] }) {
     const [showView, setShowView] = useState(false);
     const [selected, setSelected] = useState(null);
 
+    const reportData = reports?.data ?? [];
+    const reportLinks = reports?.links ?? [];
+
     const [search, setSearch] = useState("");
 
     const [showDelete, setShowDelete] = useState(false);
@@ -21,7 +24,7 @@ export default function TroubleReportIndex({ reports = [] }) {
 
     const safeReports = Array.isArray(reports) ? reports : [];
 
-    const filteredReports = safeReports.filter((r) => {
+    const filteredReports = reportData.filter((r) => {
         const keyword = search.toLowerCase().trim();
         if (!keyword) return true;
 
