@@ -11,18 +11,14 @@ export default function TicketsIndex({ tickets = [] }) {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [showEdit, setShowEdit] = useState(false);
     const [editTicket, setEditTicket] = useState(null);
-
     const [showDelete, setShowDelete] = useState(false);
     const [deleteTicket, setDeleteTicket] = useState(null);
-
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
     const [departmentFilter, setDepartmentFilter] = useState("");
-
-    // ✅ ACTIVE ROW STATE (UNCHANGED)
     const [activeRowId, setActiveRowId] = useState(null);
-
     const { flash } = usePage().props;
+    const ticketLinks = tickets?.links ?? [];
 
     const departments = [
         "Accounting", "Admin", "Assembly", "CMM", "COOP", "Deburring",
