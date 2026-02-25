@@ -73,9 +73,7 @@ export default function CreateTroubleReport({ show, onClose }) {
         computedTotal &&
         data.it_prepared_by.trim() &&
         data.it_checked_by.trim() &&
-        data.it_approved_by.trim() &&
-        data.user_reported_by.trim() &&
-        data.user_approved_by.trim();
+        data.it_approved_by.trim();
 
     const submit = () => {
         if (!isValid) return;
