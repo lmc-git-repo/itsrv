@@ -31,7 +31,7 @@ class TransferSlipController extends Controller
                 'transfer_slips.*',
                 'users.name as created_by_name'
             )
-            ->get();
+            ->paginate(10); // ✅ PAGINATION ONLY
 
         return Inertia::render('TransferSlip/Index', [
             'records' => $records,

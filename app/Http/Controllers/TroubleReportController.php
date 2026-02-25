@@ -20,37 +20,39 @@ class TroubleReportController extends Controller
     ===================================================== */
     public function index()
     {
-        $reports = TroubleReport::latest()->get()->map(function ($r) {
-            return [
-                'id' => $r->id,
-                'tr_no' => $r->tr_no,
-                'computer_no' => $r->computer_no,
-                'work_group' => $r->work_group,
-                'section' => $r->section,
-                'username' => $r->username,
-                'date_issued' => $r->date_issued,
-                'computer_type' => $r->computer_type === 'OTHERS'
-                    ? $r->computer_type_other
-                    : $r->computer_type,
-                'computer_type_other' => $r->computer_type_other,
-                'problem_report' => $r->problem_report,
-                'troubleshooting_report' => $r->troubleshooting_report,
-                'final_recommendations' => $r->final_recommendations,
-                'item' => $r->item,
-                'quantity' => $r->quantity,
-                'unit_price' => $r->unit_price,
-                'total_amount' => $r->total_amount,
-                'photograph' => $r->photograph ? Storage::url($r->photograph) : null,
-                'remarks' => $r->remarks,
-                'it_prepared_by' => $r->it_prepared_by,
-                'it_checked_by' => $r->it_checked_by,
-                'it_approved_by' => $r->it_approved_by,
-                'user_reported_by' => $r->user_reported_by,
-                'user_checked_by' => $r->user_checked_by,
-                'user_approved_by' => $r->user_approved_by,
-                'created_by' => optional($r->createdByUser)->name ?? '—',
-            ];
-        });
+        $reports = TroubleReport::latest()
+            ->paginate(10) // ✅ PAGINATION ONLY
+            ->through(function ($r) {
+                return [
+                    'id' => $r->id,
+                    'tr_no' => $r->tr_no,
+                    'computer_no' => $r->computer_no,
+                    'work_group' => $r->work_group,
+                    'section' => $r->section,
+                    'username' => $r->username,
+                    'date_issued' => $r->date_issued,
+                    'computer_type' => $r->computer_type === 'OTHERS'
+                        ? $r->computer_type_other
+                        : $r->computer_type,
+                    'computer_type_other' => $r->computer_type_other,
+                    'problem_report' => $r->problem_report,
+                    'troubleshooting_report' => $r->troubleshooting_report,
+                    'final_recommendations' => $r->final_recommendations,
+                    'item' => $r->item,
+                    'quantity' => $r->quantity,
+                    'unit_price' => $r->unit_price,
+                    'total_amount' => $r->total_amount,
+                    'photograph' => $r->photograph ? Storage::url($r->photograph) : null,
+                    'remarks' => $r->remarks,
+                    'it_prepared_by' => $r->it_prepared_by,
+                    'it_checked_by' => $r->it_checked_by,
+                    'it_approved_by' => $r->it_approved_by,
+                    'user_reported_by' => $r->user_reported_by,
+                    'user_checked_by' => $r->user_checked_by,
+                    'user_approved_by' => $r->user_approved_by,
+                    'created_by' => optional($r->createdByUser)->name ?? '—',
+                ];
+            });
 
         return Inertia::render('TroubleReport/Index', [
             'reports' => $reports,
@@ -100,38 +102,38 @@ class TroubleReportController extends Controller
         $totalAmount = $validated['total_amount'] ?? $totalAmount;
 
         $report = TroubleReport::create([
-        'tr_no' => 'TEMP',
-        'computer_no' => $validated['computer_no'] ?? null,
-        'work_group' => $validated['work_group'] ?? null,
-        'section' => $validated['section'] ?? null,
-        'username' => $validated['username'] ?? null,
-        'date_issued' => $validated['date_issued'] ?? null,
-        'computer_type' => $validated['computer_type'] ?? null,
-        'computer_type_other' => $validated['computer_type_other'] ?? null,
-        'problem_report' => $validated['problem_report'] ?? null,
-        'troubleshooting_report' => $validated['troubleshooting_report'] ?? null,
-        'final_recommendations' =>
-            $validated['final_recommendations']
-            ?? $validated['troubleshooting_report']
-            ?? null,
-        'item' => $validated['item'] ?? null,
-        'quantity' => $validated['quantity'] ?? null,
-        'unit_price' => $validated['unit_price'] ?? null,
-        'total_amount' => $totalAmount,
-        'photograph' => $photoPath,
-        'remarks' => $validated['remarks'] ?? null,
-        'it_prepared_by' => $validated['it_prepared_by'] ?? null,
-        'it_checked_by' => $validated['it_checked_by'] ?? null,
-        'it_approved_by' => $validated['it_approved_by'] ?? null,
-        'user_reported_by' => $validated['user_reported_by'] ?? null,
-        'user_checked_by' => $validated['user_checked_by'] ?? null,
-        'user_approved_by' => $validated['user_approved_by'] ?? null,
-        'created_by' => Auth::id(),
-    ]);
+            'tr_no' => 'TEMP',
+            'computer_no' => $validated['computer_no'] ?? null,
+            'work_group' => $validated['work_group'] ?? null,
+            'section' => $validated['section'] ?? null,
+            'username' => $validated['username'] ?? null,
+            'date_issued' => $validated['date_issued'] ?? null,
+            'computer_type' => $validated['computer_type'] ?? null,
+            'computer_type_other' => $validated['computer_type_other'] ?? null,
+            'problem_report' => $validated['problem_report'] ?? null,
+            'troubleshooting_report' => $validated['troubleshooting_report'] ?? null,
+            'final_recommendations' =>
+                $validated['final_recommendations']
+                ?? $validated['troubleshooting_report']
+                ?? null,
+            'item' => $validated['item'] ?? null,
+            'quantity' => $validated['quantity'] ?? null,
+            'unit_price' => $validated['unit_price'] ?? null,
+            'total_amount' => $totalAmount,
+            'photograph' => $photoPath,
+            'remarks' => $validated['remarks'] ?? null,
+            'it_prepared_by' => $validated['it_prepared_by'] ?? null,
+            'it_checked_by' => $validated['it_checked_by'] ?? null,
+            'it_approved_by' => $validated['it_approved_by'] ?? null,
+            'user_reported_by' => $validated['user_reported_by'] ?? null,
+            'user_checked_by' => $validated['user_checked_by'] ?? null,
+            'user_approved_by' => $validated['user_approved_by'] ?? null,
+            'created_by' => Auth::id(),
+        ]);
 
-    $report->update([
-        'tr_no' => 'TR-' . str_pad($report->id, 4, '0', STR_PAD_LEFT),
-    ]);
+        $report->update([
+            'tr_no' => 'TR-' . str_pad($report->id, 4, '0', STR_PAD_LEFT),
+        ]);
 
         return redirect()->route('troublereport.index')
             ->with('success', 'Trouble report created.');
@@ -272,7 +274,7 @@ class TroubleReportController extends Controller
 
         $ct  = $troublereport->computer_type;
         $cto = $troublereport->computer_type_other;
-        
+
         foreach (['B53','D53','F53','I53','K53','M53'] as $cell) {
             $sheet->getStyle($cell)->getAlignment()
                 ->setHorizontal(Alignment::HORIZONTAL_CENTER)
@@ -327,7 +329,7 @@ class TroubleReportController extends Controller
             ($ct === 'OTHERS' ? $cto : '____________________')
         );
 
-         $sheet->setCellValue(
+        $sheet->setCellValue(
             'M23',
             $ct === 'OTHERS' ? $cto : ''
         );

@@ -12,7 +12,7 @@ class TicketController extends Controller
     public function index()
     {
         return Inertia::render('Tickets/Index', [
-            'tickets' => Ticket::with('creator')->latest()->get(), // ✅ LOAD USER
+            'tickets' => Ticket::with('creator')->latest()->paginate(10), // ✅ PAGINATION ONLY
         ]);
     }
 
