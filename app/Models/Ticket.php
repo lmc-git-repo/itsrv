@@ -16,10 +16,16 @@ class Ticket extends Model
         'problem_solution',
         'status',
         'created_by',
+        'resolved_by',
     ];
 
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function resolver()
+    {
+        return $this->belongsTo(User::class, 'resolved_by');
     }
 }

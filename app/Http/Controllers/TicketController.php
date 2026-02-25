@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ticket;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -12,7 +13,8 @@ class TicketController extends Controller
     public function index()
     {
         return Inertia::render('Tickets/Index', [
-            'tickets' => Ticket::with('creator')->latest()->paginate(10), // ✅ PAGINATION ONLY
+            'tickets' => Ticket::with(['creator', 'resolver'])->latest()->paginate(10), // ✅ CHANGED (added resolver)
+            'users'   => User::select('id', 'name')->orderBy('name')->get(),
         ]);
     }
 
@@ -32,10 +34,9 @@ class TicketController extends Controller
             'category' => $request->category,
             'problem_description' => $request->problem_description,
             'status' => $request->status,
-            'created_by' => Auth::id(), // ✅ FIXED
+            'created_by' => Auth::id(),
         ]);
 
-        // ✅ AUTO-GENERATE FORMATTED TICKET NO
         $ticket->update([
             'ticket_no' => 'TCK-' . str_pad($ticket->id, 4, '0', STR_PAD_LEFT),
         ]);
@@ -48,7 +49,7 @@ class TicketController extends Controller
     public function show(Ticket $ticket)
     {
         return Inertia::render('Tickets/Show', [
-            'ticket' => $ticket->load('creator'),
+            'ticket' => $ticket->load(['creator', 'resolver']), // ✅ CHANGED (added resolver)
         ]);
     }
 
@@ -77,6 +78,7 @@ class TicketController extends Controller
             'problem_description' => 'required|string',
             'status' => 'required|string',
             'problem_solution' => 'nullable|string',
+            'resolved_by' => 'nullable|exists:users,id',
         ]);
 
         $ticket->update([
@@ -86,6 +88,7 @@ class TicketController extends Controller
             'problem_description' => $request->problem_description,
             'status' => $request->status,
             'problem_solution' => $request->problem_solution,
+            'resolved_by' => $request->resolved_by,
         ]);
 
         return redirect()

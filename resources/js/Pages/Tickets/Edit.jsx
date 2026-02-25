@@ -1,7 +1,8 @@
 import { useEffect, useMemo } from "react";
-import { useForm } from "@inertiajs/react";
+import { useForm, usePage } from "@inertiajs/react";
 
 export default function EditTicketModal({ show, ticket, onClose }) {
+    const { users = [] } = usePage().props;
 
     const departments = [
         "Accounting", "Admin", "Assembly", "CMM", "COOP", "Deburring",
@@ -11,7 +12,6 @@ export default function EditTicketModal({ show, ticket, onClose }) {
         "New Project", "PPC", "Purchasing", "QC", "Safety", "Sales",
     ];
 
-    /* ✅ COMPLETE CATEGORY LIST (REFERENCE MATCHED) */
     const categories = [
         "Application & System Support",
         "Hardware Support & Device Setup",
@@ -33,6 +33,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             problem_description: ticket.problem_description || "",
             status: ticket.status || "",
             problem_solution: ticket.problem_solution || "",
+            resolved_by: ticket.resolved_by || "",
         };
     }, [ticket]);
 
@@ -44,6 +45,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             problem_description: "",
             status: "",
             problem_solution: "",
+            resolved_by: "",
         }
     );
 
@@ -79,10 +81,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div
-                className="absolute inset-0 bg-black/60"
-                onClick={onClose}
-            />
+            <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
             <form
                 onSubmit={handleSubmit}
@@ -130,7 +129,6 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         </select>
                     </div>
 
-                    {/* ✅ FIXED ONLY — COMPLETE CATEGORY DROPDOWN */}
                     <div>
                         <label>Category</label>
                         <select
@@ -185,6 +183,25 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                                 setData("problem_solution", e.target.value)
                             }
                         />
+                    </div>
+
+                    {/* ✅ FIXED: spacing + readable text */}
+                    <div>
+                        <label>Resolved By</label>
+                        <select
+                            className="w-full rounded border px-3 py-2 text-[#101E33]"
+                            value={data.resolved_by}
+                            onChange={(e) =>
+                                setData("resolved_by", e.target.value)
+                            }
+                        >
+                            <option value="">Select User</option>
+                            {users.map((u) => (
+                                <option key={u.id} value={u.id}>
+                                    {u.name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 

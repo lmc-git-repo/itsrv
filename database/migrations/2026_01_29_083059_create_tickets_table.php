@@ -9,18 +9,15 @@ return new class extends Migration {
     {
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
-
-            // ✅ FIX: must be nullable so create() does not fail
             $table->string('ticket_no')->nullable()->unique();
-
             $table->string('employee_name');
             $table->string('department');
             $table->string('category');
             $table->text('problem_description');
             $table->text('problem_solution')->nullable();
-
             $table->string('status')->default('Open');
             $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('resolved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

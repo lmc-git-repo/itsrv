@@ -49,6 +49,7 @@ export default function Show({ show, ticket, onClose }) {
                     <p><strong>Category:</strong> {ticket.category}</p>
                     <p><strong>Status:</strong> {ticket.status}</p>
                     <p><strong>Created By:</strong> {ticket.creator?.name}</p>
+                    <p><strong>Resolved By:</strong> {ticket.resolver?.name || "—"}</p>
 
                     <div>
                         <strong>Problem Description:</strong>

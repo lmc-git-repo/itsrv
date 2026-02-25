@@ -148,7 +148,7 @@ export default function TicketsIndex({ tickets = [] }) {
                             <th className="px-4 py-3 text-center">Employee Name</th>
                             <th className="px-4 py-3 text-center">Department</th>
                             <th className="px-4 py-3 text-center">Status</th>
-                            <th className="px-4 py-3 text-center">Created By</th>
+                            <th className="px-4 py-3 text-center">Resolved By</th>
                             <th className="px-4 py-3 text-center">Actions</th>
                         </tr>
                     </thead>
@@ -194,7 +194,7 @@ export default function TicketsIndex({ tickets = [] }) {
 
                                 <td className="px-4 py-3">
                                     <div className="flex justify-center items-center">
-                                        {t.creator?.name}
+                                        {t.resolver?.name || "-"}
                                     </div>
                                 </td>
 
