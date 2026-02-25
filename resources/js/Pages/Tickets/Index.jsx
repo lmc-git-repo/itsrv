@@ -4,6 +4,7 @@ import { Head, usePage, router } from "@inertiajs/react";
 import CreateTicketModal from "./Create";
 import ShowTicketModal from "./Show";
 import EditTicketModal from "./Edit";
+import Pagination from "@/Components/Pagination";
 
 export default function TicketsIndex({ tickets = [] }) {
     const [showCreate, setShowCreate] = useState(false);
@@ -18,7 +19,8 @@ export default function TicketsIndex({ tickets = [] }) {
     const [departmentFilter, setDepartmentFilter] = useState("");
     const [activeRowId, setActiveRowId] = useState(null);
     const { flash } = usePage().props;
-    const ticketLinks = tickets?.links ?? [];
+    const ticketData = tickets?.data ?? [];
+    const ticketLinks = tickets?.meta?.links ?? [];
 
     const departments = [
         "Accounting", "Admin", "Assembly", "CMM", "COOP", "Deburring",
@@ -226,25 +228,15 @@ export default function TicketsIndex({ tickets = [] }) {
                         ))}
                     </tbody>
                 </table>
+                <Pagination
+                links={ticketLinks}
+                queryParams={{
+                    search,
+                    status: statusFilter,
+                    department: departmentFilter,
+                }}
+                />
             </div>
-
-            {ticketLinks.length > 0 && (
-                <div className="flex justify-center mt-6 gap-2 text-sm">
-                    {ticketLinks.map((link, i) => (
-                        <button
-                            key={i}
-                            disabled={!link.url}
-                            onClick={() => link.url && router.visit(link.url)}
-                            className={`px-3 py-1 rounded ${
-                                link.active
-                                    ? "bg-blue-600 text-white"
-                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                            }`}
-                            dangerouslySetInnerHTML={{ __html: link.label }}
-                        />
-                    ))}
-                </div>
-            )}
 
             <CreateTicketModal show={showCreate} onClose={() => setShowCreate(false)} />
             <ShowTicketModal
