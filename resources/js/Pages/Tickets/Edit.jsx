@@ -36,6 +36,9 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             problem_solution: ticket.problem_solution || "",
             resolved_by: ticket.resolved_by || "",
             date_opened: ticket.date_opened || "",
+
+            // ✅ INSERTED
+            resolved_at: ticket.resolved_at || "",
         };
     }, [ticket]);
 
@@ -48,7 +51,10 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             status: "",
             problem_solution: "",
             resolved_by: "",
-            date_opened: "", // ✅ INSERTED (THIS IS THE FIX)
+            date_opened: "",
+
+            // ✅ INSERTED
+            resolved_at: "",
         }
     );
 
@@ -187,6 +193,21 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                             }
                         />
                     </div>
+
+                    {/* ✅ INSERTED: only show if resolved */}
+                    {data.status === "Resolved" && (
+                        <div>
+                            <label>Resolved At</label>
+                            <input
+                                type="date"
+                                className="w-full rounded border px-3 py-2"
+                                value={data.resolved_at}
+                                onChange={(e) =>
+                                    setData("resolved_at", e.target.value)
+                                }
+                            />
+                        </div>
+                    )}
 
                     <div>
                         <label>Problem Solution</label>

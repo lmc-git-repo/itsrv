@@ -36,12 +36,10 @@ export default function Show({ show, ticket, onClose }) {
                     ✕
                 </button>
 
-                
                 <h2 className="text-xl font-bold text-center mb-6 text-[#101E33]">
                     Ticket Details
                 </h2>
 
-                
                 <div className="space-y-3 text-base text-[#101E33]">
                     <p><strong>Ticket No:</strong> {ticket.ticket_no}</p>
                     <p><strong>Employee Name:</strong> {ticket.employee_name}</p>
@@ -49,6 +47,10 @@ export default function Show({ show, ticket, onClose }) {
                     <p><strong>Category:</strong> {ticket.category}</p>
                     <p><strong>Status:</strong> {ticket.status}</p>
                     <p><strong>Date Opened:</strong> {ticket.date_opened}</p>
+
+                    {/* ✅ INSERTED */}
+                    <p><strong>Resolved At:</strong> {ticket.resolved_at || "—"}</p>
+
                     <p><strong>Created By:</strong> {ticket.creator?.name}</p>
                     <p><strong>Resolved By:</strong> {ticket.resolver?.name || "—"}</p>
 

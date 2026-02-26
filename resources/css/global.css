@@ -408,6 +408,11 @@ canvas {
     font-size: 14px;
 }
 
+.records-page.tickets-wrapper {
+    margin-top: 6px;     
+    padding-top: 18px; 
+}
+
 .records-search {
     display: flex;
     align-items: center;

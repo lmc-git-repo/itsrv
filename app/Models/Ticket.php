@@ -18,6 +18,7 @@ class Ticket extends Model
         'date_opened',
         'created_by',
         'resolved_by',
+        'resolved_at',
     ];
 
     public function creator()

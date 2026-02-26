@@ -80,7 +80,7 @@ export default function TroubleReportIndex({ reports = [] }) {
 
                     <button
                         onClick={() => setShowCreate(true)}
-                        className="tickets-add-btn flex items-center gap-2"
+                        className="tickets-add-btn flex items-center gap-2 ml-auto"
                     >
                         🛠️ Add
                     </button>

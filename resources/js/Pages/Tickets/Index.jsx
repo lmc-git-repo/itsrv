@@ -20,7 +20,7 @@ export default function TicketsIndex({ tickets = [] }) {
     const [resolvedByFilter, setResolvedByFilter] = useState("");
     const [activeRowId, setActiveRowId] = useState(null);
     const { flash, users = [] } = usePage().props;
-    const ticketData = tickets?.data ?? [];
+    const ticketData = Array.isArray(tickets) ? tickets : tickets?.data ?? [];
     const ticketLinks = tickets?.links ?? [];
 
     const departments = [
@@ -44,15 +44,21 @@ export default function TicketsIndex({ tickets = [] }) {
         }
     };
 
-    const computeDaysOpen = (dateOpened) => {
+    const computeDaysOpen = (dateOpened, status, resolvedAt) => {
         if (!dateOpened) return "-";
+
         const opened = new Date(dateOpened);
-        const today = new Date();
-        const diff = today - opened;
+
+        const end =
+            status === "Resolved" && resolvedAt
+                ? new Date(resolvedAt)
+                : new Date();
+
+        const diff = end - opened;
         return Math.max(Math.ceil(diff / (1000 * 60 * 60 * 24)), 0);
     };
 
-    const filteredTickets = ticketData.filter((t) => {
+        const filteredTickets = ticketData.filter((t) => {
         const keyword = search.toLowerCase();
 
         const matchesSearch =
@@ -93,7 +99,6 @@ export default function TicketsIndex({ tickets = [] }) {
                     {flash.success}
                 </div>
             )}
-            
 
             <div className="flex items-center mb-6 gap-6">
                 <div className="w-[20%]">
@@ -157,9 +162,7 @@ export default function TicketsIndex({ tickets = [] }) {
                 </div>
             </div>
 
-            {/* ✅ CLASS ADDED HERE */}
             <div className="tickets-table-wrapper overflow-x-auto rounded-lg shadow-its bg-white">
-                {/* ✅ CLASS ADDED HERE */}
                 <table className="tickets-table w-full text-sm text-[#101E33] table-fixed">
                     <thead className="bg-gray-100 text-xs uppercase">
                         <tr>
@@ -215,7 +218,7 @@ export default function TicketsIndex({ tickets = [] }) {
                                 </td>
 
                                 <td className="px-4 py-3 text-center">
-                                    {computeDaysOpen(t.date_opened)}
+                                    {computeDaysOpen(t.date_opened, t.status, t.resolved_at)}
                                 </td>
 
                                 <td className="px-4 py-3 text-center">
