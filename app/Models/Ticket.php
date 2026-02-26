@@ -15,6 +15,7 @@ class Ticket extends Model
         'problem_description',
         'problem_solution',
         'status',
+        'date_opened',
         'created_by',
         'resolved_by',
     ];

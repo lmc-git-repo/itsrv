@@ -30,7 +30,7 @@ const centerTextPlugin = {
 ChartJS.register(ArcElement, Tooltip, Legend, centerTextPlugin);
 
 /* =========================
-   STAT CARD (CLICKABLE)
+   STATUS CARD
 ========================= */
 const StatCard = ({ title, value, accent, onClick }) => (
   <div
@@ -52,7 +52,7 @@ const StatCard = ({ title, value, accent, onClick }) => (
 );
 
 /* =========================
-   ✅ INSERTED: CATEGORY DEFINITIONS
+   CATEGORY DEFINITIONS
 ========================= */
 const CATEGORY_INFO = {
   "Application & System Support": {
@@ -142,7 +142,7 @@ export default function Dashboard({
   const sourceTickets = tickets.length ? tickets : pageTickets;
 
   /* =========================
-     ✅ INSERTED: CATEGORY MODAL STATE
+     CATEGORY MODAL STATE
   ========================= */
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -178,8 +178,6 @@ export default function Dashboard({
     const handleEsc = (e) => {
       if (e.key === "Escape") {
         setShowModal(false);
-
-        /* ✅ INSERTED: close category modal on ESC too */
         setShowCategoryModal(false);
       }
     };
@@ -279,7 +277,6 @@ export default function Dashboard({
               title={cat.name}
               value={cat.total}
               accent={categoryColors[index % categoryColors.length]}
-              /* ✅ INSERTED: CLICK OPENS CATEGORY INFO MODAL */
               onClick={() => {
                 setSelectedCategory(cat.name);
                 setShowCategoryModal(true);
@@ -290,7 +287,7 @@ export default function Dashboard({
       </div>
 
       {/* =========================
-         ✅ INSERTED: CATEGORY INFO MODAL
+         CATEGORY INFO MODAL
       ========================= */}
       {showCategoryModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -338,7 +335,7 @@ export default function Dashboard({
       )}
 
       {/* =========================
-         ✅ YOUR ORIGINAL STATUS MODAL (UNCHANGED)
+         STATUS MODAL
       ========================= */}
        {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -359,7 +356,6 @@ export default function Dashboard({
               {selectedStatus}
             </h2>
 
-            {/* ✅ INSERTED ONLY — VERTICAL SCROLL */}
             <div className="overflow-x-auto max-h-[65vh] overflow-y-auto">
               <table className="w-full text-sm border">
                 <thead className="bg-gray-100 text-left text-gray-800 sticky top-0 z-10">

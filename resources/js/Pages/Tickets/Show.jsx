@@ -48,6 +48,7 @@ export default function Show({ show, ticket, onClose }) {
                     <p><strong>Department:</strong> {ticket.department}</p>
                     <p><strong>Category:</strong> {ticket.category}</p>
                     <p><strong>Status:</strong> {ticket.status}</p>
+                    <p><strong>Date Opened:</strong> {ticket.date_opened}</p>
                     <p><strong>Created By:</strong> {ticket.creator?.name}</p>
                     <p><strong>Resolved By:</strong> {ticket.resolver?.name || "—"}</p>
 

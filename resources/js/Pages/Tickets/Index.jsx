@@ -17,8 +17,9 @@ export default function TicketsIndex({ tickets = [] }) {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
     const [departmentFilter, setDepartmentFilter] = useState("");
+    const [resolvedByFilter, setResolvedByFilter] = useState("");
     const [activeRowId, setActiveRowId] = useState(null);
-    const { flash } = usePage().props;
+    const { flash, users = [] } = usePage().props;
     const ticketData = tickets?.data ?? [];
     const ticketLinks = tickets?.links ?? [];
 
@@ -43,6 +44,14 @@ export default function TicketsIndex({ tickets = [] }) {
         }
     };
 
+    const computeDaysOpen = (dateOpened) => {
+        if (!dateOpened) return "-";
+        const opened = new Date(dateOpened);
+        const today = new Date();
+        const diff = today - opened;
+        return Math.max(Math.ceil(diff / (1000 * 60 * 60 * 24)), 0);
+    };
+
     const filteredTickets = ticketData.filter((t) => {
         const keyword = search.toLowerCase();
 
@@ -50,13 +59,16 @@ export default function TicketsIndex({ tickets = [] }) {
             t.ticket_no?.toLowerCase().includes(keyword) ||
             t.employee_name?.toLowerCase().includes(keyword) ||
             t.department?.toLowerCase().includes(keyword) ||
+            t.problem_description?.toLowerCase().includes(keyword) ||
             t.status?.toLowerCase().includes(keyword) ||
             t.creator?.name?.toLowerCase().includes(keyword);
 
         const matchesStatus = !statusFilter || t.status === statusFilter;
         const matchesDepartment = !departmentFilter || t.department === departmentFilter;
+        const matchesResolvedBy =
+            !resolvedByFilter || String(t.resolved_by) === resolvedByFilter;
 
-        return matchesSearch && matchesStatus && matchesDepartment;
+        return matchesSearch && matchesStatus && matchesDepartment && matchesResolvedBy;
     });
 
     const confirmDelete = () => {
@@ -81,9 +93,10 @@ export default function TicketsIndex({ tickets = [] }) {
                     {flash.success}
                 </div>
             )}
+            
 
-            <div className="flex items-center mb-6">
-                <div className="w-[25%]">
+            <div className="flex items-center mb-6 gap-6">
+                <div className="w-[20%]">
                     <input
                         type="text"
                         placeholder="Search"
@@ -93,7 +106,7 @@ export default function TicketsIndex({ tickets = [] }) {
                     />
                 </div>
 
-                <div className="w-[20%] ml-[6%]">
+                <div className="w-[20%]">
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
@@ -106,7 +119,7 @@ export default function TicketsIndex({ tickets = [] }) {
                     </select>
                 </div>
 
-                <div className="w-[30%] ml-[6%]">
+                <div className="w-[26%]">
                     <select
                         value={departmentFilter}
                         onChange={(e) => setDepartmentFilter(e.target.value)}
@@ -121,6 +134,19 @@ export default function TicketsIndex({ tickets = [] }) {
                     </select>
                 </div>
 
+                <div className="w-[22%] ml-auto">
+                    <select
+                        value={resolvedByFilter}
+                        onChange={(e) => setResolvedByFilter(e.target.value)}
+                        className="rounded-full px-4 py-2 text-sm text-[#101E33] w-full"
+                    >
+                        <option value="">Resolved By</option>
+                        {users.map((u) => (
+                            <option key={u.id} value={u.id}>{u.name}</option>
+                        ))}
+                    </select>
+                </div>
+
                 <div className="ml-auto">
                     <button
                         onClick={() => setShowCreate(true)}
@@ -131,23 +157,18 @@ export default function TicketsIndex({ tickets = [] }) {
                 </div>
             </div>
 
-            <div className="overflow-x-auto rounded-lg shadow-its bg-white">
-                <table className="w-full text-sm text-[#101E33] table-fixed">
-                    <colgroup>
-                        <col style={{ width: "10%" }} />
-                        <col style={{ width: "20%" }} />
-                        <col style={{ width: "14%" }} />
-                        <col style={{ width: "14%" }} />
-                        <col style={{ width: "14%" }} />
-                        <col style={{ width: "20%" }} />
-                    </colgroup>
-
+            {/* ✅ CLASS ADDED HERE */}
+            <div className="tickets-table-wrapper overflow-x-auto rounded-lg shadow-its bg-white">
+                {/* ✅ CLASS ADDED HERE */}
+                <table className="tickets-table w-full text-sm text-[#101E33] table-fixed">
                     <thead className="bg-gray-100 text-xs uppercase">
                         <tr>
                             <th className="px-4 py-3">Ticket No.</th>
                             <th className="px-4 py-3 text-center">Employee Name</th>
                             <th className="px-4 py-3 text-center">Department</th>
+                            <th className="px-4 py-3 text-center">Problem Description</th>
                             <th className="px-4 py-3 text-center">Status</th>
+                            <th className="px-4 py-3 text-center">Days Open</th>
                             <th className="px-4 py-3 text-center">Resolved By</th>
                             <th className="px-4 py-3 text-center">Actions</th>
                         </tr>
@@ -156,7 +177,7 @@ export default function TicketsIndex({ tickets = [] }) {
                     <tbody>
                         {filteredTickets.length === 0 && (
                             <tr>
-                                <td colSpan="6" className="text-center py-8 text-gray-400">
+                                <td colSpan="8" className="text-center py-8 text-gray-400">
                                     No tickets found.
                                 </td>
                             </tr>
@@ -179,6 +200,7 @@ export default function TicketsIndex({ tickets = [] }) {
                                 <td className="px-4 py-3 font-medium">{t.ticket_no}</td>
                                 <td className="px-4 py-3 text-center">{t.employee_name}</td>
                                 <td className="px-4 py-3 text-center">{t.department}</td>
+                                <td className="px-4 py-3 text-center">{t.problem_description}</td>
 
                                 <td className="px-4 py-3">
                                     <div className="flex justify-center items-center">
@@ -192,10 +214,12 @@ export default function TicketsIndex({ tickets = [] }) {
                                     </div>
                                 </td>
 
-                                <td className="px-4 py-3">
-                                    <div className="flex justify-center items-center">
-                                        {t.resolver?.name || "-"}
-                                    </div>
+                                <td className="px-4 py-3 text-center">
+                                    {computeDaysOpen(t.date_opened)}
+                                </td>
+
+                                <td className="px-4 py-3 text-center">
+                                    {t.resolver?.name || "-"}
                                 </td>
 
                                 <td
@@ -228,13 +252,15 @@ export default function TicketsIndex({ tickets = [] }) {
                         ))}
                     </tbody>
                 </table>
+
                 <Pagination
-                links={ticketLinks}
-                queryParams={{
-                    search,
-                    status: statusFilter,
-                    department: departmentFilter,
-                }}
+                    links={ticketLinks}
+                    queryParams={{
+                        search,
+                        status: statusFilter,
+                        department: departmentFilter,
+                        resolved_by: resolvedByFilter,
+                    }}
                 />
             </div>
 

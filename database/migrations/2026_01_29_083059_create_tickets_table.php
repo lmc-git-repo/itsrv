@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->string('department');
             $table->string('category');
             $table->text('problem_description');
+            $table->date('date_opened');
             $table->text('problem_solution')->nullable();
             $table->string('status')->default('Open');
             $table->foreignId('created_by')->constrained('users');

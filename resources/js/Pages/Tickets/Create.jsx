@@ -8,6 +8,7 @@ export default function CreateTicketModal({ show, onClose }) {
         category: "",
         problem_description: "",
         status: "Open",
+        date_opened: "", // ✅ INSERTED
     });
 
     const departments = [
@@ -27,17 +28,18 @@ export default function CreateTicketModal({ show, onClose }) {
         "IT Operations & Maintenance",
         "Asset & Equipment Handling",
         "Security & Permissions",
+        "Others",
     ];
 
     const statuses = ["Open", "Ongoing", "Resolved"];
 
-    /* ✅ INSERTED ONLY */
     const isValid =
         data.employee_name.trim() &&
         data.department &&
         data.category &&
         data.problem_description.trim() &&
-        data.status;
+        data.status &&
+        data.date_opened; // ✅ INSERTED
 
     const submit = () => {
         if (!isValid) return;
@@ -111,6 +113,17 @@ export default function CreateTicketModal({ show, onClose }) {
                                 <option key={c} value={c}>{c}</option>
                             ))}
                         </select>
+                    </div>
+
+                    <div>
+                        <label className="block mb-1">Date Opened</label>
+                        <input
+                            type="date"
+                            required
+                            className="w-full rounded border px-3 py-2"
+                            value={data.date_opened}
+                            onChange={e => setData("date_opened", e.target.value)}
+                        />
                     </div>
 
                     <div>

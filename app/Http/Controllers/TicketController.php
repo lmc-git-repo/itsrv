@@ -26,6 +26,7 @@ class TicketController extends Controller
             'category' => 'required|string',
             'problem_description' => 'required|string',
             'status' => 'required|string',
+            'date_opened' => 'required|date', // ✅ INSERTED
         ]);
 
         $ticket = Ticket::create([
@@ -34,6 +35,7 @@ class TicketController extends Controller
             'category' => $request->category,
             'problem_description' => $request->problem_description,
             'status' => $request->status,
+            'date_opened' => $request->date_opened, // ✅ INSERTED
             'created_by' => Auth::id(),
         ]);
 
@@ -77,6 +79,7 @@ class TicketController extends Controller
             'category' => 'required|string',
             'problem_description' => 'required|string',
             'status' => 'required|string',
+            'date_opened' => 'required|date', 
             'problem_solution' => 'nullable|string',
             'resolved_by' => 'nullable|exists:users,id',
         ]);
@@ -87,6 +90,7 @@ class TicketController extends Controller
             'category' => $request->category,
             'problem_description' => $request->problem_description,
             'status' => $request->status,
+            'date_opened' => $request->date_opened, 
             'problem_solution' => $request->problem_solution,
             'resolved_by' => $request->resolved_by,
         ]);

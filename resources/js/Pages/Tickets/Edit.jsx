@@ -21,6 +21,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
         "IT Operations & Maintenance",
         "Asset & Equipment Handling",
         "Security & Permissions",
+        "Others",
     ];
 
     const original = useMemo(() => {
@@ -34,6 +35,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             status: ticket.status || "",
             problem_solution: ticket.problem_solution || "",
             resolved_by: ticket.resolved_by || "",
+            date_opened: ticket.date_opened || "",
         };
     }, [ticket]);
 
@@ -46,6 +48,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             status: "",
             problem_solution: "",
             resolved_by: "",
+            date_opened: "", // ✅ INSERTED (THIS IS THE FIX)
         }
     );
 
@@ -174,6 +177,18 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                     </div>
 
                     <div>
+                        <label>Date Opened</label>
+                        <input
+                            type="date"
+                            className="w-full rounded border px-3 py-2"
+                            value={data.date_opened}
+                            onChange={(e) =>
+                                setData("date_opened", e.target.value)
+                            }
+                        />
+                    </div>
+
+                    <div>
                         <label>Problem Solution</label>
                         <input
                             className="w-full rounded border px-3 py-2"
@@ -185,7 +200,6 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         />
                     </div>
 
-                    {/* ✅ FIXED: spacing + readable text */}
                     <div>
                         <label>Resolved By</label>
                         <select
