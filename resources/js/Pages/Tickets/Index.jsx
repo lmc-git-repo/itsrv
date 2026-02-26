@@ -31,6 +31,24 @@ export default function TicketsIndex({ tickets = [] }) {
         "New Project", "PPC", "Purchasing", "QC", "Safety", "Sales",
     ];
 
+    const applyFilters = (params = {}) => {
+        router.get(
+            route("tickets.index"),
+            {
+                search,
+                status: statusFilter || null,
+                department: departmentFilter || null,
+                resolved_by: resolvedByFilter || null,
+                page: 1,
+                ...params,
+            },
+            {
+                preserveState: true,
+                replace: true,
+            }
+        );
+    };
+
     const getStatusBadgeClass = (status) => {
         switch (status) {
             case "Open":
@@ -106,7 +124,10 @@ export default function TicketsIndex({ tickets = [] }) {
                         type="text"
                         placeholder="Search"
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e) => {
+                            setSearch(e.target.value);
+                            applyFilters({ search: e.target.value });
+                        }}
                         className="rounded-full px-4 py-2 text-sm text-[#101E33] w-full"
                     />
                 </div>
@@ -114,7 +135,10 @@ export default function TicketsIndex({ tickets = [] }) {
                 <div className="w-[20%]">
                     <select
                         value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
+                        onChange={(e) => {
+                            setStatusFilter(e.target.value);
+                            applyFilters({ status: e.target.value });
+                        }}
                         className="rounded-full px-4 py-2 text-sm text-[#101E33] w-full"
                     >
                         <option value="">Select Status</option>
@@ -127,7 +151,10 @@ export default function TicketsIndex({ tickets = [] }) {
                 <div className="w-[26%]">
                     <select
                         value={departmentFilter}
-                        onChange={(e) => setDepartmentFilter(e.target.value)}
+                        onChange={(e) => {
+                            setDepartmentFilter(e.target.value);
+                            applyFilters({ department: e.target.value });
+                        }}
                         className="rounded-full px-4 py-2 text-sm text-[#101E33] w-full"
                     >
                         <option value="">Select Department</option>
@@ -142,7 +169,10 @@ export default function TicketsIndex({ tickets = [] }) {
                 <div className="w-[22%] ml-auto">
                     <select
                         value={resolvedByFilter}
-                        onChange={(e) => setResolvedByFilter(e.target.value)}
+                        onChange={(e) => {
+                            setResolvedByFilter(e.target.value);
+                            applyFilters({ resolved_by: e.target.value });
+                        }}
                         className="rounded-full px-4 py-2 text-sm text-[#101E33] w-full"
                     >
                         <option value="">Resolved By</option>
