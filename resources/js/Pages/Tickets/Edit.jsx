@@ -3,6 +3,11 @@ import { useForm, usePage } from "@inertiajs/react";
 
 export default function EditTicketModal({ show, ticket, onClose }) {
     const { users = [] } = usePage().props;
+    const superadminUsers = useMemo(() => {
+        return Array.isArray(users)
+            ? users.filter((u) => u?.role === "superadmin")
+            : [];
+    }, [users]);
 
     const departments = [
         "Accounting", "Admin", "Assembly", "CMM", "COOP", "Deburring",
@@ -34,10 +39,8 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             problem_description: ticket.problem_description || "",
             status: ticket.status || "",
             problem_solution: ticket.problem_solution || "",
-            resolved_by: ticket.resolved_by || "",
+            resolved_by: ticket.resolved_by ? String(ticket.resolved_by) : "",
             date_opened: ticket.date_opened || "",
-
-            // ✅ INSERTED
             resolved_at: ticket.resolved_at || "",
         };
     }, [ticket]);
@@ -52,8 +55,6 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             problem_solution: "",
             resolved_by: "",
             date_opened: "",
-
-            // ✅ INSERTED
             resolved_at: "",
         }
     );
@@ -194,7 +195,6 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         />
                     </div>
 
-                    {/* ✅ INSERTED: only show if resolved */}
                     {data.status === "Resolved" && (
                         <div>
                             <label>Resolved At</label>
@@ -232,7 +232,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         >
                             <option value="">Select User</option>
                             {users.map((u) => (
-                                <option key={u.id} value={u.id}>
+                                <option key={u.id} value={String(u.id)}>
                                     {u.name}
                                 </option>
                             ))}

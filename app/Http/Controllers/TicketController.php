@@ -38,7 +38,7 @@ class TicketController extends Controller
 
         return Inertia::render('Tickets/Index', [
             'tickets' => $query->paginate(10)->withQueryString(),
-            'users'   => User::select('id', 'name')->orderBy('name')->get(),
+            'users'   => User::where('role', 'superadmin')->select('id', 'name')->orderBy('name')->get(),
         ]);
     }
 
