@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'liezel',
             'email' => 'larracasliezel31@gmail.com',
             'password' => Hash::make('@liz123'),
+            'role' => 'superadmin',
         ]);
     }
 }
