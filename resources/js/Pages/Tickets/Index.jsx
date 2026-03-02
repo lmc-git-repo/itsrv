@@ -19,7 +19,8 @@ export default function TicketsIndex({ tickets = [] }) {
     const [departmentFilter, setDepartmentFilter] = useState("");
     const [resolvedByFilter, setResolvedByFilter] = useState("");
     const [activeRowId, setActiveRowId] = useState(null);
-    const { flash, users = [] } = usePage().props;
+    const { flash, users = [], auth } = usePage().props;
+    const isSuperAdmin = auth?.user?.role === "superadmin";
     const ticketData = Array.isArray(tickets) ? tickets : tickets?.data ?? [];
     const ticketLinks = tickets?.links ?? [];
 
@@ -183,12 +184,14 @@ export default function TicketsIndex({ tickets = [] }) {
                 </div>
 
                 <div className="ml-auto">
-                    <button
-                        onClick={() => setShowCreate(true)}
-                        className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg text-sm font-semibold"
-                    >
-                        🎫 Add
-                    </button>
+                    {isSuperAdmin && (
+                        <button
+                            onClick={() => setShowCreate(true)}
+                            className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg text-sm font-semibold"
+                        >
+                            🎫 Add
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -203,14 +206,16 @@ export default function TicketsIndex({ tickets = [] }) {
                             <th className="px-4 py-3 text-center">Status</th>
                             <th className="px-4 py-3 text-center">Days Open</th>
                             <th className="px-4 py-3 text-center">Resolved By</th>
-                            <th className="px-4 py-3 text-center">Actions</th>
+                            {isSuperAdmin && (
+                                <th className="px-4 py-3 text-center">Actions</th>
+                            )}
                         </tr>
                     </thead>
 
                     <tbody>
                         {filteredTickets.length === 0 && (
                             <tr>
-                                <td colSpan="8" className="text-center py-8 text-gray-400">
+                                <td colSpan={isSuperAdmin ? "8" : "7"} className="text-center py-8 text-gray-400"> {/* ✅ INSERTED ONLY */}
                                     No tickets found.
                                 </td>
                             </tr>
@@ -255,32 +260,34 @@ export default function TicketsIndex({ tickets = [] }) {
                                     {t.resolver?.name || "-"}
                                 </td>
 
-                                <td
-                                    className="px-4 py-3"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    <div className="flex justify-center gap-4">
-                                        <button
-                                            onClick={() => {
-                                                setEditTicket(t);
-                                                setShowEdit(true);
-                                            }}
-                                            className="text-blue-600 hover:text-blue-800"
-                                        >
-                                            ✏️
-                                        </button>
+                                {isSuperAdmin && (
+                                    <td
+                                        className="px-4 py-3"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <div className="flex justify-center gap-4">
+                                            <button
+                                                onClick={() => {
+                                                    setEditTicket(t);
+                                                    setShowEdit(true);
+                                                }}
+                                                className="text-blue-600 hover:text-blue-800"
+                                            >
+                                                ✏️
+                                            </button>
 
-                                        <button
-                                            onClick={() => {
-                                                setDeleteTicket(t);
-                                                setShowDelete(true);
-                                            }}
-                                            className="text-red-600 hover:text-red-800"
-                                        >
-                                            🗑️
-                                        </button>
-                                    </div>
-                                </td>
+                                            <button
+                                                onClick={() => {
+                                                    setDeleteTicket(t);
+                                                    setShowDelete(true);
+                                                }}
+                                                className="text-red-600 hover:text-red-800"
+                                            >
+                                                🗑️
+                                            </button>
+                                        </div>
+                                    </td>
+                                )}
                             </tr>
                         ))}
                     </tbody>
@@ -297,7 +304,10 @@ export default function TicketsIndex({ tickets = [] }) {
                 />
             </div>
 
-            <CreateTicketModal show={showCreate} onClose={() => setShowCreate(false)} />
+            {isSuperAdmin && (
+                <CreateTicketModal show={showCreate} onClose={() => setShowCreate(false)} />
+            )}
+
             <ShowTicketModal
                 show={showView}
                 ticket={selectedTicket}
@@ -306,9 +316,12 @@ export default function TicketsIndex({ tickets = [] }) {
                     setActiveRowId(null);
                 }}
             />
-            <EditTicketModal show={showEdit} ticket={editTicket} onClose={() => setShowEdit(false)} />
 
-            {showDelete && deleteTicket && (
+            {isSuperAdmin && ( 
+                <EditTicketModal show={showEdit} ticket={editTicket} onClose={() => setShowEdit(false)} />
+            )} 
+
+            {isSuperAdmin && showDelete && deleteTicket && ( 
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div
                         className="absolute inset-0 bg-black/60"

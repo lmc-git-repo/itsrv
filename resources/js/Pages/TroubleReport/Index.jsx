@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { router } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 import Pagination from "@/Components/Pagination";
@@ -23,6 +23,9 @@ export default function TroubleReportIndex({ reports = [] }) {
     const [deleteTarget, setDeleteTarget] = useState(null);
 
     const safeReports = Array.isArray(reports) ? reports : [];
+
+    const { auth } = usePage().props;
+    const isSuperAdmin = auth?.user?.role === "superadmin";
 
     const filteredReports = reportData.filter((r) => {
         const keyword = search.toLowerCase().trim();
@@ -78,12 +81,14 @@ export default function TroubleReportIndex({ reports = [] }) {
                         />
                     </div>
 
-                    <button
-                        onClick={() => setShowCreate(true)}
-                        className="tickets-add-btn flex items-center gap-2 ml-auto"
-                    >
-                        🛠️ Add
-                    </button>
+                    {isSuperAdmin && (
+                        <button
+                            onClick={() => setShowCreate(true)}
+                            className="tickets-add-btn flex items-center gap-2 ml-auto"
+                        >
+                            🛠️ Add
+                        </button>
+                    )}
                 </div>
 
                 <div className="tickets-table-wrapper">
@@ -96,7 +101,9 @@ export default function TroubleReportIndex({ reports = [] }) {
                                 <th>Username</th>
                                 <th>Computer Type</th>
                                 <th>Created By</th>
-                                <th>Actions</th>
+                                {isSuperAdmin && (
+                                    <th>Actions</th>
+                                )}
                             </tr>
                         </thead>
 
@@ -118,47 +125,49 @@ export default function TroubleReportIndex({ reports = [] }) {
                                         <td>{r.computer_type}</td>
                                         <td>{r.created_by}</td>
 
-                                        <td
-                                            className="space-x-3"
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            <button
-                                                onClick={() => {
-                                                    setSelected(r);
-                                                    setShowEdit(true);
-                                                }}
+                                        {isSuperAdmin && (
+                                            <td
+                                                className="space-x-3"
+                                                onClick={(e) => e.stopPropagation()}
                                             >
-                                                ✏️
-                                            </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setSelected(r);
+                                                        setShowEdit(true);
+                                                    }}
+                                                >
+                                                    ✏️
+                                                </button>
 
-                                            <button
-                                                onClick={() => {
-                                                    setDeleteTarget(r);
-                                                    setShowDelete(true);
-                                                }}
-                                            >
-                                                🗑
-                                            </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setDeleteTarget(r);
+                                                        setShowDelete(true);
+                                                    }}
+                                                >
+                                                    🗑
+                                                </button>
 
-                                            <button
-                                                onClick={() => {
-                                                    if (!r?.id) return;
-                                                    window.location.href = route(
-                                                        "troublereport.download",
-                                                        { troublereport: r.id }
-                                                    );
-                                                }}
-                                                title="Download Excel"
-                                            >
-                                                ⬇️
-                                            </button>
-                                        </td>
+                                                <button
+                                                    onClick={() => {
+                                                        if (!r?.id) return;
+                                                        window.location.href = route(
+                                                            "troublereport.download",
+                                                            { troublereport: r.id }
+                                                        );
+                                                    }}
+                                                    title="Download Excel"
+                                                >
+                                                    ⬇️
+                                                </button>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
                                     <td
-                                        colSpan="7"
+                                        colSpan={isSuperAdmin ? "7" : "6"}
                                         className="text-center py-6 text-gray-500"
                                     >
                                         No trouble report records available.
@@ -174,16 +183,20 @@ export default function TroubleReportIndex({ reports = [] }) {
                 </div>
             </div>
 
-            <CreateModal
-                show={showCreate}
-                onClose={() => setShowCreate(false)}
-            />
+            {isSuperAdmin && ( 
+                <CreateModal
+                    show={showCreate}
+                    onClose={() => setShowCreate(false)}
+                />
+            )}
 
-            <EditModal
-                show={showEdit}
-                report={selected}
-                onClose={() => setShowEdit(false)}
-            />
+            {isSuperAdmin && (
+                <EditModal
+                    show={showEdit}
+                    report={selected}
+                    onClose={() => setShowEdit(false)}
+                />
+            )}
 
             <ShowModal
                 show={showView}
@@ -191,7 +204,7 @@ export default function TroubleReportIndex({ reports = [] }) {
                 onClose={() => setShowView(false)}
             />
 
-            {showDelete && (
+            {isSuperAdmin && showDelete && (
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center">
                     <div
                         className="absolute inset-0 bg-black/60"

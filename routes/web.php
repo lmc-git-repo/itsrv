@@ -19,7 +19,7 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 */
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth'])
+    ->middleware(['auth','role:superadmin,admin']) 
     ->name('dashboard');
 
 /*
@@ -27,10 +27,18 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 | Tickets
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->group(function () {
+
+Route::middleware(['auth','role:superadmin,admin'])->group(function () {
 
     Route::get('/tickets', [TicketController::class, 'index'])
         ->name('tickets.index');
+
+    Route::get('/tickets/{ticket}', [TicketController::class, 'show'])
+        ->name('tickets.show');
+
+});
+
+Route::middleware(['auth','role:superadmin'])->group(function () {
 
     Route::post('/tickets', [TicketController::class, 'store'])
         ->name('tickets.store');
@@ -38,17 +46,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/tickets/create', [TicketController::class, 'create'])
         ->name('tickets.create');
 
-    Route::get('/tickets/{ticket}', [TicketController::class, 'show'])
-        ->name('tickets.show');
-
     Route::get('/tickets/{ticket}/edit', [TicketController::class, 'edit'])
         ->name('tickets.edit');
-    
+
     Route::put('/tickets/{ticket}', [TicketController::class, 'update'])
         ->name('tickets.update');
-    
+
     Route::delete('/tickets/{ticket}', [TicketController::class, 'destroy'])
         ->name('tickets.destroy');
+
 });
 
 /*
@@ -56,9 +62,15 @@ Route::middleware(['auth'])->group(function () {
 | Trouble Report
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth','role:superadmin,admin'])->group(function () { 
+
     Route::get('/records/trouble-report', [TroubleReportController::class, 'index'])
         ->name('troublereport.index');
+
+});
+
+/* SUPERADMIN ONLY (CRUD + DOWNLOAD) */
+Route::middleware(['auth','role:superadmin'])->group(function () {
 
     Route::post('/records/trouble-report', [TroubleReportController::class, 'store'])
         ->name('troublereport.store');
@@ -75,6 +87,7 @@ Route::middleware(['auth'])->group(function () {
         '/records/trouble-report/{troublereport}/download',
         [TroubleReportController::class, 'downloadExcel']
     )->name('troublereport.download');
+
 });
 
 /*
@@ -82,26 +95,46 @@ Route::middleware(['auth'])->group(function () {
 | Transfer Slip
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth','role:superadmin,admin'])->group(function () { 
+
     Route::prefix('records/transfer-slip')->name('transferslip.')->group(function () {
-        Route::get('/', [TransferSlipController::class, 'index'])->name('index');
-        Route::post('/', [TransferSlipController::class, 'store'])->name('store');
-        Route::put('/{transferslip}', [TransferSlipController::class, 'update'])->name('update');
-        Route::delete('/{transferslip}', [TransferSlipController::class, 'destroy'])->name('destroy');
+
+        Route::get('/', [TransferSlipController::class, 'index'])
+            ->name('index');
+
+    });
+
+});
+
+/* SUPERADMIN ONLY (CRUD + DOWNLOAD) */
+Route::middleware(['auth','role:superadmin'])->group(function () {
+
+    Route::prefix('records/transfer-slip')->name('transferslip.')->group(function () {
+
+        Route::post('/', [TransferSlipController::class, 'store'])
+            ->name('store');
+
+        Route::put('/{transferslip}', [TransferSlipController::class, 'update'])
+            ->name('update');
+
+        Route::delete('/{transferslip}', [TransferSlipController::class, 'destroy'])
+            ->name('destroy');
 
         Route::get(
             '/{transferslip}/download',
             [TransferSlipController::class, 'downloadWord']
         )->name('download');
+
     });
+
 });
 
 /*
 |--------------------------------------------------------------------------
-| USERS (✅ INSERTED ONLY)
+| Users
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth','role:superadmin'])->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');

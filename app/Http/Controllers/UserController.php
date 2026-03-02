@@ -16,6 +16,7 @@ class UserController extends Controller
                 'id' => $u->id,
                 'name' => $u->name,
                 'email' => $u->email,
+                'role' => $u->role, 
                 'created_at' => $u->created_at->format('Y-m-d'),
             ]),
         ]);
@@ -27,12 +28,14 @@ class UserController extends Controller
             'name' => ['required', 'string'],
             'email' => ['required', 'email', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6'],
+            'role' => ['required', 'in:admin,superadmin'], 
         ]);
 
         User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'role' => $validated['role'], 
         ]);
 
         return redirect()->back();
@@ -44,6 +47,7 @@ class UserController extends Controller
             'name' => ['required', 'string'],
             'email' => ['required', 'email', 'unique:users,email,' . $user->id],
             'password' => ['nullable', 'string', 'min:6'],
+            'role' => ['required', 'in:admin,superadmin'], 
         ]);
 
         $user->update([
@@ -52,6 +56,7 @@ class UserController extends Controller
             'password' => $validated['password']
                 ? Hash::make($validated['password'])
                 : $user->password,
+            'role' => $validated['role'], 
         ]);
 
         return redirect()->back();

@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
+    const isSuperAdmin = user?.role === "superadmin"; // ✅ INSERTED ONLY
 
     return (
         <div className="min-h-screen flex flex-col bg-[#101E33] text-white dashboard-bg">
@@ -65,12 +66,15 @@ export default function AuthenticatedLayout({ header, children }) {
                                     </Dropdown.Content>
                                 </Dropdown>
 
-                                <Link
-                                    href={route('users.index')}
-                                    className="hover:text-blue-400"
-                                >
-                                    Users
-                                </Link>
+                                {/* USERS (SUPERADMIN ONLY) */}
+                                {isSuperAdmin && ( // ✅ INSERTED ONLY
+                                    <Link
+                                        href={route('users.index')}
+                                        className="hover:text-blue-400"
+                                    >
+                                        Users
+                                    </Link>
+                                )} {/* ✅ INSERTED ONLY */}
                             </div>
 
                             {/* USER DROPDOWN */}

@@ -1,5 +1,5 @@
 import { useForm } from "@inertiajs/react";
-import { useState } from "react"; // ✅ INSERTED ONLY
+import { useState } from "react";
 
 export default function CreateUser({ onClose }) {
     const { data, setData, post } = useForm({
@@ -7,29 +7,27 @@ export default function CreateUser({ onClose }) {
         email: "",
         password: "",
         password_confirmation: "",
+        role: "admin",
     });
 
-    const [errorMessage, setErrorMessage] = useState(""); // ✅ INSERTED ONLY
+    const [errorMessage, setErrorMessage] = useState("");
 
-    /* ✅ REQUIRED VALIDATION */
     const valid =
         data.name.trim() &&
         data.email.trim() &&
         data.password.trim() &&
         data.password_confirmation.trim() &&
         data.password === data.password_confirmation;
+        data.role.trim();
 
-    /* ✅ INSERTED ONLY — accept event & stop bubbling */
     const submit = (e) => {
         e.stopPropagation();
-        setErrorMessage(""); // ✅ INSERTED ONLY
+        setErrorMessage("");
 
         if (!valid) return;
 
         post("/users", {
             preserveScroll: true,
-
-            /* ✅ INSERTED ONLY — UI ERROR (NO CONSOLE) */
             onError: (errors) => {
                 if (errors.password) {
                     setErrorMessage(errors.password);
@@ -40,7 +38,6 @@ export default function CreateUser({ onClose }) {
                 }
             },
 
-            /* ✅ INSERTED ONLY — close ONLY if success */
             onSuccess: () => {
                 onClose();
             },
@@ -106,7 +103,6 @@ export default function CreateUser({ onClose }) {
                     ADD NEW USER
                 </h2>
 
-                {/* ✅ INSERTED ONLY — ERROR MESSAGE UI */}
                 {errorMessage && (
                     <div
                         style={{
@@ -205,6 +201,27 @@ export default function CreateUser({ onClose }) {
                         backgroundColor: "#ffffff",
                     }}
                 />
+
+                <label style={{ fontSize: "15px", fontWeight: "600", marginBottom: "6px", display: "block", color: "#111827" }}>
+                    Role
+                </label>
+                <select
+                    value={data.role}
+                    onChange={(e) => setData("role", e.target.value)}
+                    style={{
+                        width: "100%",
+                        padding: "12px 14px",
+                        borderRadius: "10px",
+                        border: "1px solid #d1d5db",
+                        marginBottom: "18px",
+                        fontSize: "16px",
+                        color: "#111827",
+                        backgroundColor: "#ffffff",
+                    }}
+                >
+                    <option value="admin">admin</option>
+                    <option value="superadmin">superadmin</option>
+                </select>
 
                 <div
                     className="users-modal-actions"

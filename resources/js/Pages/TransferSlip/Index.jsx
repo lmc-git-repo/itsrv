@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Head, router } from "@inertiajs/react";
+import { Head, router, usePage } from "@inertiajs/react"; // ✅ INSERTED ONLY
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import Pagination from "@/Components/Pagination";
 
@@ -12,11 +12,10 @@ export default function Index({ records = [] }) {
     const [showCreate, setShowCreate] = useState(false);
     const [selected, setSelected] = useState(null);
     const [editRecord, setEditRecord] = useState(null);
-
     const [showDelete, setShowDelete] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null);
-    
-    /* ✅ PAGINATION SAFE ACCESS */
+    const { auth } = usePage().props;
+    const isSuperAdmin = auth?.user?.role === "superadmin"; 
     const recordData = records?.data ?? [];
     const recordLinks = records?.links ?? [];
 
@@ -61,7 +60,6 @@ export default function Index({ records = [] }) {
                 className="tr-wrapper records-page"
                 style={{ marginTop: "0" }}
             >
-                {/* HEADER */}
                 <div className="tr-header">
                     <div className="records-search transfer-search">
                         <input
@@ -73,15 +71,16 @@ export default function Index({ records = [] }) {
                         />
                     </div>
 
-                    <button
-                        className="tr-add-btn"
-                        onClick={() => setShowCreate(true)}
-                    >
-                        🧾 Add
-                    </button>
+                    {isSuperAdmin && (
+                        <button
+                            className="tr-add-btn"
+                            onClick={() => setShowCreate(true)}
+                        >
+                            🧾 Add
+                        </button>
+                    )}
                 </div>
 
-                {/* TABLE */}
                 <div className="tr-table-wrapper">
                     <table className="tr-table">
                         <thead>
@@ -92,7 +91,9 @@ export default function Index({ records = [] }) {
                                 <th style={thStyle}>Date</th>
                                 <th style={thStyle}>Equipment</th>
                                 <th style={thStyle}>Created By</th>
-                                <th style={thStyle}>Actions</th>
+                                {isSuperAdmin && (
+                                    <th style={thStyle}>Actions</th>
+                                )}
                             </tr>
                         </thead>
 
@@ -100,7 +101,7 @@ export default function Index({ records = [] }) {
                             {filteredRecords.length === 0 ? (
                                 <tr>
                                     <td
-                                        colSpan="7"
+                                        colSpan={isSuperAdmin ? "7" : "6"}
                                         style={{
                                             textAlign: "center",
                                             padding: "24px",
@@ -128,43 +129,45 @@ export default function Index({ records = [] }) {
                                             {r.created_by_name ?? r.created_by}
                                         </td>
 
-                                        <td
-                                            className="tr-actions"
-                                            onClick={(e) => e.stopPropagation()}
-                                            style={tdStyle}
-                                        >
-                                            <span
-                                                className="tr-action-btn"
-                                                onClick={() => setEditRecord(r)}
-                                                style={actionIconStyle}
+                                        {isSuperAdmin && (
+                                            <td
+                                                className="tr-actions"
+                                                onClick={(e) => e.stopPropagation()}
+                                                style={tdStyle}
                                             >
-                                                ✏️
-                                            </span>
+                                                <span
+                                                    className="tr-action-btn"
+                                                    onClick={() => setEditRecord(r)}
+                                                    style={actionIconStyle}
+                                                >
+                                                    ✏️
+                                                </span>
 
-                                            <span
-                                                className="tr-action-btn"
-                                                onClick={() => {
-                                                    setDeleteTarget(r);
-                                                    setShowDelete(true);
-                                                }}
-                                                style={actionIconStyle}
-                                            >
-                                                🗑
-                                            </span>
+                                                <span
+                                                    className="tr-action-btn"
+                                                    onClick={() => {
+                                                        setDeleteTarget(r);
+                                                        setShowDelete(true);
+                                                    }}
+                                                    style={actionIconStyle}
+                                                >
+                                                    🗑
+                                                </span>
 
-                                            <span
-                                                className="tr-action-btn"
-                                                onClick={() =>
-                                                    window.open(
-                                                        route("transferslip.download", r.id),
-                                                        "_blank"
-                                                    )
-                                                }
-                                                style={actionIconStyle}
-                                            >
-                                                ⬇️
-                                            </span>
-                                        </td>
+                                                <span
+                                                    className="tr-action-btn"
+                                                    onClick={() =>
+                                                        window.open(
+                                                            route("transferslip.download", r.id),
+                                                            "_blank"
+                                                        )
+                                                    }
+                                                    style={actionIconStyle}
+                                                >
+                                                    ⬇️
+                                                </span>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             )}
@@ -177,9 +180,11 @@ export default function Index({ records = [] }) {
                 </div>
 
                 {/* MODALS */}
-                {showCreate && <Create onClose={() => setShowCreate(false)} />}
+                {isSuperAdmin && showCreate && (
+                    <Create onClose={() => setShowCreate(false)} />
+                )}
 
-                {editRecord && (
+                {isSuperAdmin && editRecord && (
                     <Edit
                         record={editRecord}
                         onClose={() => setEditRecord(null)}
@@ -193,7 +198,7 @@ export default function Index({ records = [] }) {
                     />
                 )}
 
-                {showDelete && (
+                {isSuperAdmin && showDelete && ( 
                     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
                         <div
                             className="absolute inset-0 bg-black/40"

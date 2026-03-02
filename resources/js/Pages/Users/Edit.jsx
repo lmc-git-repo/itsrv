@@ -6,25 +6,26 @@ export default function EditUser({ user, onClose }) {
         name: "",
         email: "",
         password: "",
+        role: "admin",
     });
 
-    /* ✅ INSERTED ONLY — safely sync user data */
     useEffect(() => {
         if (user) {
             setData({
                 name: user.name ?? "",
                 email: user.email ?? "",
                 password: "",
+                role: user.role ?? "admin",
             });
         }
     }, [user]);
 
     const changed =
-        data.name !== (user?.name ?? "") ||
-        data.email !== (user?.email ?? "") ||
-        data.password !== "";
+        data.name !== user?.name ||
+        data.email !== user?.email ||
+        data.password !== "" ||
+        data.role !== user?.role;
 
-    /* ✅ INSERTED ONLY — form submit handler */
     const submit = (e) => {
         e.preventDefault();
         if (!changed) return;
@@ -62,7 +63,6 @@ export default function EditUser({ user, onClose }) {
                     position: "relative",
                 }}
             >
-                {/* ❌ CLOSE BUTTON */}
                 <button
                     type="button"
                     onClick={onClose}
@@ -161,7 +161,6 @@ export default function EditUser({ user, onClose }) {
                     New Password (optional)
                 </label>
 
-                {/* ✅ FIX — comment moved OUTSIDE attributes */}
                 <input
                     type="password"
                     value={data.password}
@@ -178,6 +177,34 @@ export default function EditUser({ user, onClose }) {
                         background: "#ffffff",
                     }}
                 />
+                <label
+                    style={{
+                        fontSize: "14px",
+                        fontWeight: "600",
+                        marginBottom: "6px",
+                        display: "block",
+                        color: "#101E33",
+                    }}
+                >
+                    Role
+                </label>
+                <select
+                    value={data.role}
+                    onChange={(e) => setData("role", e.target.value)}
+                    style={{
+                        width: "100%",
+                        padding: "12px 14px",
+                        borderRadius: "8px",
+                        border: "1px solid #e5e7eb",
+                        marginBottom: "16px",
+                        fontSize: "15px",
+                        color: "#101E33",
+                        background: "#ffffff",
+                    }}
+                >
+                    <option value="admin">admin</option>
+                    <option value="superadmin">superadmin</option>
+                </select>
 
                 <div
                     className="users-modal-actions"

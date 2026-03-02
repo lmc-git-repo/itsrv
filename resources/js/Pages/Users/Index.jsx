@@ -63,6 +63,7 @@ export default function UsersIndex({ users }) {
                                 <th>ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
+                                <th>Role</th>
                                 <th>Date Created</th>
                                 <th>Actions</th>
                             </tr>
@@ -73,6 +74,7 @@ export default function UsersIndex({ users }) {
                                     <td>{u.id}</td>
                                     <td>{u.name}</td>
                                     <td>{u.email}</td>
+                                    <td>{u.role}</td>
                                     <td>{u.created_at}</td>
                                     <td className="users-actions">
                                         <span onClick={() => setEditUser(u)}>✏️</span>
