@@ -4,9 +4,6 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 
-/* =========================
-   CENTER TEXT PLUGIN
-========================= */
 const centerTextPlugin = {
   id: "centerText",
   afterDatasetsDraw(chart) {
@@ -127,6 +124,16 @@ const CATEGORY_INFO = {
       "Security incident report",
     ],
   },
+
+  Others: {
+    meaning:
+      "Non-IT support tasks requested from IT, like admin/document tasks.",
+    examples: [
+      "Created a company ID for employee",
+      "Printed ID / document assistance",
+      "Other requests not under IT categories",
+    ],
+  },
 };
 
 export default function Dashboard({
@@ -140,6 +147,17 @@ export default function Dashboard({
 
   const pageTickets = usePage().props.tickets ?? [];
   const sourceTickets = tickets.length ? tickets : pageTickets;
+  const othersTotal = Array.isArray(sourceTickets)
+    ? sourceTickets.filter((t) => (t?.category ?? "").trim() === "Others").length
+    : 0;
+  const categoriesWithOthers = Array.isArray(categories)
+    ? [
+        ...categories,
+        ...(categories.some((c) => c?.name === "Others")
+          ? []
+          : [{ name: "Others", total: othersTotal }]),
+      ]
+    : [{ name: "Others", total: othersTotal }];
 
   /* =========================
      CATEGORY MODAL STATE
@@ -171,9 +189,6 @@ export default function Dashboard({
     );
   }, [sourceTickets, showModal, selectedStatus]);
 
-  /* =========================
-     ESC KEY CLOSE
-  ========================= */
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") {
@@ -223,6 +238,7 @@ export default function Dashboard({
     "#A1D6B2",
     "#FDB7EA",
     "#FFB38E",
+    "#6D3B47",
   ];
 
   return (
@@ -271,7 +287,7 @@ export default function Dashboard({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.map((cat, index) => (
+          {categoriesWithOthers.map((cat, index) => (
             <StatCard
               key={cat.name}
               title={cat.name}
@@ -318,7 +334,9 @@ export default function Dashboard({
               </div>
 
               <div>
-                <div className="font-semibold text-[#101E33] mb-1">Sample Issues</div>
+                <div className="font-semibold text-[#101E33] mb-1">
+                  Sample Issues
+                </div>
                 <ul className="list-disc list-inside space-y-1">
                   {(CATEGORY_INFO[selectedCategory]?.examples ?? []).length ? (
                     CATEGORY_INFO[selectedCategory].examples.map((ex, idx) => (
@@ -337,7 +355,7 @@ export default function Dashboard({
       {/* =========================
          STATUS MODAL
       ========================= */}
-       {showModal && (
+      {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
             className="absolute inset-0 bg-black/60"
