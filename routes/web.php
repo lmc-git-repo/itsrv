@@ -43,6 +43,8 @@ Route::middleware(['auth','role:superadmin'])->group(function () {
     Route::post('/tickets', [TicketController::class, 'store'])
         ->name('tickets.store');
 
+    Route::post('/tickets/{id}/solution', [TicketController::class, 'addSolution']);
+
     Route::get('/tickets/create', [TicketController::class, 'create'])
         ->name('tickets.create');
 

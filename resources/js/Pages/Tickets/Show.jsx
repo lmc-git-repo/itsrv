@@ -47,8 +47,6 @@ export default function Show({ show, ticket, onClose }) {
                     <p><strong>Category:</strong> {ticket.category}</p>
                     <p><strong>Status:</strong> {ticket.status}</p>
                     <p><strong>Date Opened:</strong> {ticket.date_opened}</p>
-
-                    {/* ✅ INSERTED */}
                     <p><strong>Resolved At:</strong> {ticket.resolved_at || "—"}</p>
 
                     <p><strong>Created By:</strong> {ticket.creator?.name}</p>
@@ -69,6 +67,7 @@ export default function Show({ show, ticket, onClose }) {
                             readOnly
                             className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base"
                             value={ticket.problem_solution || "No solution provided yet."}
+                            style={{ whiteSpace: "pre-wrap" }}
                         />
                     </div>
                 </div>

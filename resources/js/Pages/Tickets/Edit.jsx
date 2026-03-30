@@ -61,16 +61,23 @@ export default function EditTicketModal({ show, ticket, onClose }) {
 
     useEffect(() => {
         if (original) {
-            setData(original);
+            setData({
+                ...original,
+                problem_solution: "",
+            });
         }
     }, [original]);
 
     const hasChanges = useMemo(() => {
         if (!original) return false;
 
-        return Object.keys(original).some(
-            (key) => data[key] !== original[key]
-        );
+        return Object.keys(original).some((key) => {
+            if (key === "problem_solution") {
+                return data.problem_solution !== "";
+            }
+
+            return data[key] !== original[key];
+        });
     }, [data, original]);
 
     const handleSubmit = (e) => {
@@ -82,6 +89,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             preserveScroll: true,
             preserveState: false,
             onSuccess: () => {
+                setData("problem_solution", "");
                 onClose();
             },
         });
@@ -214,7 +222,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         <input
                             className="w-full rounded border px-3 py-2"
                             placeholder="Enter solution"
-                            value={data.problem_solution}
+                            value={data.problem_solution || ""}
                             onChange={(e) =>
                                 setData("problem_solution", e.target.value)
                             }

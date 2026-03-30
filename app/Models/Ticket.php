@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
+use App\Models\TicketSolution;
 
 class Ticket extends Model
 {
@@ -29,5 +30,10 @@ class Ticket extends Model
     public function resolver()
     {
         return $this->belongsTo(User::class, 'resolved_by');
+    }
+
+     public function solutions()
+    {
+        return $this->hasMany(TicketSolution::class)->latest();
     }
 }

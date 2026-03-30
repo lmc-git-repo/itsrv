@@ -104,6 +104,20 @@ class TicketController extends Controller
             'resolved_at' => 'nullable|date',
         ]);
 
+        $newSolution = $request->problem_solution;
+
+        if ($newSolution) {
+            $user = Auth::user()->name;
+
+            $existing = $ticket->problem_solution
+                ? $ticket->problem_solution . "\n\n"
+                : '';
+
+            $formatted = "{$user}: {$newSolution}";
+
+            $ticket->problem_solution = $existing . $formatted;
+        }
+
         $ticket->update([
             'employee_name' => $request->employee_name,
             'department' => $request->department,
@@ -111,7 +125,7 @@ class TicketController extends Controller
             'problem_description' => $request->problem_description,
             'status' => $request->status,
             'date_opened' => $request->date_opened,
-            'problem_solution' => $request->problem_solution,
+            'problem_solution' => $ticket->problem_solution,
             'resolved_by' => $request->resolved_by,
             'resolved_at' => $request->status === 'Resolved' ? $request->resolved_at : null,
         ]);
