@@ -71,7 +71,6 @@ Route::middleware(['auth','role:superadmin,admin'])->group(function () {
 
 });
 
-/* SUPERADMIN ONLY (CRUD + DOWNLOAD) */
 Route::middleware(['auth','role:superadmin'])->group(function () {
 
     Route::post('/records/trouble-report', [TroubleReportController::class, 'store'])
@@ -141,6 +140,15 @@ Route::middleware(['auth','role:superadmin'])->group(function () {
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+/*
+|--------------------------------------------------------------------------
+| IT Tools
+|--------------------------------------------------------------------------
+*/
+Route::get('/it-tools', function () {
+    return Inertia::render('ITTools/Index');
+    })->name('ittools.index');
 });
 
 require __DIR__.'/auth.php';

@@ -136,7 +136,7 @@ p, span, label, div {
 }
 
 /* =========================
-   CHART SAFETY
+   CHART
 ========================= */
 canvas {
     max-width: 100% !important;
@@ -149,9 +149,6 @@ canvas {
     height: 260px;
 }
 
-/* =========================
-   NAVBAR SPACING FIX
-========================= */
 .nav-tight {
     padding-top: 6px !important;
     padding-bottom: 6px !important;
@@ -271,8 +268,6 @@ canvas {
 .tickets-table tbody tr:hover {
     background-color: #f1f5f9;
 }
-
-/* COLUMN WIDTHS (BALANCED) */
 
 /* Ticket No */
 .tickets-table th:nth-child(1),
@@ -694,4 +689,95 @@ nav .absolute button:hover {
 .users-actions span {
     cursor: pointer;
     font-size: 16px;
+}
+
+/* =========================
+   IT TOOLS PAGE
+========================= */
+.ittools-wrapper-full {
+    margin-top: 10px;
+    padding: 32px;
+    border-radius: 12px;
+    background: linear-gradient(
+        180deg,
+        #0f2138 0%,
+        #0c1b2f 100%
+    );
+    width: 100%;
+}
+
+.ittools-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    letter-spacing: 1px;
+    color: #e6edff;
+}
+
+.ittools-grid-expanded {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+    gap: 20px !important;
+}
+
+.ittools-tile-large {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 16px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(6px);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.ittools-tile-large:hover {
+    transform: translateY(-6px) scale(1.04);
+    background: rgba(255,255,255,0.12);
+}
+
+.ittools-icon-large {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 12px;
+    object-fit: contain;
+}
+
+.ittools-name-large {
+    font-size: 15px;
+    font-weight: 600;
+    text-align: center;
+    color: #ffffff;
+}
+
+.ittools-grid-expanded {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+    gap: 20px !important;
+}
+
+.ittools-tile-large {
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 20px !important;
+    gap: 10px !important;
+}
+
+.ittools-icon-large {
+    margin-bottom: 12px !important;
+    width: 60px !important;
+    height: 60px !important;
+}
+
+.ittools-name-large {
+    text-align: center !important;
+    font-size: 15px !important;
+}
+
+.ittools-tile-large:hover {
+    transform: translateY(-6px) scale(1.04) !important;
 }

@@ -66,15 +66,24 @@ export default function AuthenticatedLayout({ header, children }) {
                                     </Dropdown.Content>
                                 </Dropdown>
 
-                                {/* USERS (SUPERADMIN ONLY) */}
-                                {isSuperAdmin && ( // ✅ INSERTED ONLY
+                                {/*IT TOOLS*/}
+                                {isSuperAdmin && (
+                                    <Link
+                                        href="/it-tools"
+                                        className="hover:text-blue-400"
+                                    >
+                                        IT Tools
+                                    </Link>
+                                )}
+
+                                {isSuperAdmin && ( 
                                     <Link
                                         href={route('users.index')}
                                         className="hover:text-blue-400"
                                     >
                                         Users
                                     </Link>
-                                )} {/* ✅ INSERTED ONLY */}
+                                )}
                             </div>
 
                             {/* USER DROPDOWN */}
