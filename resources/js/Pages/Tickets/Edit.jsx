@@ -217,35 +217,39 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         </div>
                     )}
 
-                    <div>
-                        <label>Problem Solution</label>
-                        <input
-                            className="w-full rounded border px-3 py-2"
-                            placeholder="Enter solution"
-                            value={data.problem_solution || ""}
-                            onChange={(e) =>
-                                setData("problem_solution", e.target.value)
-                            }
-                        />
-                    </div>
+                    {data.status === "Resolved" && (
+                        <div>
+                            <label>Problem Solution</label>
+                            <input
+                                className="w-full rounded border px-3 py-2"
+                                placeholder="Enter solution"
+                                value={data.problem_solution || ""}
+                                onChange={(e) =>
+                                    setData("problem_solution", e.target.value)
+                                }
+                            />
+                        </div>
+                    )}
 
-                    <div>
-                        <label>Resolved By</label>
-                        <select
-                            className="w-full rounded border px-3 py-2 text-[#101E33]"
-                            value={data.resolved_by}
-                            onChange={(e) =>
-                                setData("resolved_by", e.target.value)
-                            }
-                        >
-                            <option value="">Select User</option>
-                            {users.map((u) => (
-                                <option key={u.id} value={String(u.id)}>
-                                    {u.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    {data.status === "Resolved" && (
+                        <div>
+                            <label>Resolved By</label>
+                            <select
+                                className="w-full rounded border px-3 py-2 text-[#101E33]"
+                                value={data.resolved_by}
+                                onChange={(e) =>
+                                    setData("resolved_by", e.target.value)
+                                }
+                            >
+                                <option value="">Select User</option>
+                                {users.map((u) => (
+                                    <option key={u.id} value={String(u.id)}>
+                                        {u.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                 </div>
 
                 <div className="mt-6 flex justify-center gap-4">

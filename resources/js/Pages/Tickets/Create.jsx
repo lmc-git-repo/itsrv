@@ -8,7 +8,7 @@ export default function CreateTicketModal({ show, onClose }) {
         category: "",
         problem_description: "",
         status: "Open",
-        date_opened: "", // ✅ INSERTED
+        date_opened: "",
     });
 
     const departments = [

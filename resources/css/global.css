@@ -16,7 +16,7 @@ body {
 }
 
 /* =========================
-   GLOBAL TEXT SAFETY
+   GLOBAL TEXT
 ========================= */
 h1, h2, h3, h4, h5, h6,
 p, span, label, div {
@@ -27,14 +27,43 @@ p, span, label, div {
    LOGIN PAGE
 ========================= */
 .its-login-bg {
+    background: url('/images/bg.JPG') no-repeat left center;
+    background-size: contain;
     background-color: #101E33;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
+    padding-right: 150px;
     min-height: 100vh;
     overflow: hidden;
 }
 
+.its-login-split {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.its-login-image-panel {
+    display: none;
+}
+
+.its-login-side-image {
+    display: none;
+}
+
+.its-login-form-panel {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    background: transparent;
+}
+
+/* =========================
+   LOGIN CARD
+========================= */
 .its-login-card {
     width: 100%;
     max-width: 420px;
@@ -42,8 +71,8 @@ p, span, label, div {
     border-radius: 16px;
     background: linear-gradient(
         180deg,
-        #0f2138 0%,
-        #0c1b2f 100%
+        rgba(15, 33, 56, 0.85) 0%,
+        rgba(12, 27, 47, 0.9) 100%
     );
     box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
     display: flex;
@@ -122,6 +151,13 @@ p, span, label, div {
 
 .its-login-btn:hover {
     background-color: #e9ecf4;
+}
+
+@media (max-width: 991px) {
+    .its-login-form-panel {
+        width: 100%;
+        padding: 28px 20px 36px;
+    }
 }
 
 /* =========================
