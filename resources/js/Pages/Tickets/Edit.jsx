@@ -39,6 +39,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             problem_description: ticket.problem_description || "",
             status: ticket.status || "",
             problem_solution: ticket.problem_solution || "",
+            progress_update: ticket.progress_update || "",
             resolved_by: ticket.resolved_by ? String(ticket.resolved_by) : "",
             date_opened: ticket.date_opened || "",
             resolved_at: ticket.resolved_at || "",
@@ -53,6 +54,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             problem_description: "",
             status: "",
             problem_solution: "",
+            progress_update: "",
             resolved_by: "",
             date_opened: "",
             resolved_at: "",
@@ -64,6 +66,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             setData({
                 ...original,
                 problem_solution: "",
+                progress_update: "", // ✅ RESET LIKE THREAD INPUT
             });
         }
     }, [original]);
@@ -74,6 +77,10 @@ export default function EditTicketModal({ show, ticket, onClose }) {
         return Object.keys(original).some((key) => {
             if (key === "problem_solution") {
                 return data.problem_solution !== "";
+            }
+
+            if (key === "progress_update") {
+                return data.progress_update !== "";
             }
 
             return data[key] !== original[key];
@@ -90,6 +97,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             preserveState: false,
             onSuccess: () => {
                 setData("problem_solution", "");
+                setData("progress_update", ""); // ✅ CLEAR AFTER SUBMIT
                 onClose();
             },
         });
@@ -190,6 +198,20 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                             <option value="Resolved">Resolved</option>
                         </select>
                     </div>
+
+                    {data.status === "Ongoing" && (
+                        <div>
+                            <label>Progress Update</label>
+                            <input
+                                className="w-full rounded border px-3 py-2"
+                                placeholder="Enter progress update"
+                                value={data.progress_update || ""}
+                                onChange={(e) =>
+                                    setData("progress_update", e.target.value)
+                                }
+                            />
+                        </div>
+                    )}
 
                     <div>
                         <label>Date Opened</label>

@@ -100,6 +100,7 @@ class TicketController extends Controller
             'status' => 'required|string',
             'date_opened' => 'required|date',
             'problem_solution' => 'nullable|string',
+            'progress_update' => 'nullable|string', // ✅ ADDED
             'resolved_by' => 'nullable|exists:users,id',
             'resolved_at' => 'nullable|date',
         ]);
@@ -118,6 +119,21 @@ class TicketController extends Controller
             $ticket->problem_solution = $existing . $formatted;
         }
 
+        // ✅ NEW: PROGRESS UPDATE THREAD
+        $newProgress = $request->progress_update;
+
+        if ($newProgress) {
+            $user = Auth::user()->name;
+
+            $existing = $ticket->progress_update
+                ? $ticket->progress_update . "\n\n"
+                : '';
+
+            $formatted = "{$user}: {$newProgress}";
+
+            $ticket->progress_update = $existing . $formatted;
+        }
+
         $ticket->update([
             'employee_name' => $request->employee_name,
             'department' => $request->department,
@@ -126,6 +142,7 @@ class TicketController extends Controller
             'status' => $request->status,
             'date_opened' => $request->date_opened,
             'problem_solution' => $ticket->problem_solution,
+            'progress_update' => $ticket->progress_update,
             'resolved_by' => $request->resolved_by,
             'resolved_at' => $request->status === 'Resolved' ? $request->resolved_at : null,
         ]);

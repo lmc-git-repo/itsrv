@@ -62,6 +62,16 @@ export default function Show({ show, ticket, onClose }) {
                     </div>
 
                     <div>
+                        <strong>Progress Update:</strong>
+                        <textarea
+                            readOnly
+                            className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base"
+                            value={ticket.progress_update || "No progress update yet."}
+                            style={{ whiteSpace: "pre-wrap" }}
+                        />
+                    </div>
+
+                    <div>
                         <strong>Problem Solution:</strong>
                         <textarea
                             readOnly
