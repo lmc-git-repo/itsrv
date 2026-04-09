@@ -77,7 +77,7 @@ export default function TicketsIndex({ tickets = [] }) {
         return Math.max(Math.ceil(diff / (1000 * 60 * 60 * 24)), 0);
     };
 
-        const filteredTickets = ticketData.filter((t) => {
+    const filteredTickets = ticketData.filter((t) => {
         const keyword = search.toLowerCase();
 
         const matchesSearch =
@@ -99,7 +99,19 @@ export default function TicketsIndex({ tickets = [] }) {
     const confirmDelete = () => {
         if (!deleteTicket) return;
 
+        const currentPage = tickets?.current_page || 1;
+        const isOnlyItemOnPage = ticketData.length === 1;
+        const targetPage = currentPage > 1 && isOnlyItemOnPage ? currentPage - 1 : currentPage;
+
         router.delete(route("tickets.destroy", deleteTicket.id), {
+            data: {
+                page: targetPage,
+                search,
+                status: statusFilter || null,
+                department: departmentFilter || null,
+                resolved_by: resolvedByFilter || null,
+            },
+            preserveScroll: true,
             onFinish: () => {
                 setShowDelete(false);
                 setDeleteTicket(null);
@@ -215,7 +227,7 @@ export default function TicketsIndex({ tickets = [] }) {
                     <tbody>
                         {filteredTickets.length === 0 && (
                             <tr>
-                                <td colSpan={isSuperAdmin ? "8" : "7"} className="text-center py-8 text-gray-400"> {/* ✅ INSERTED ONLY */}
+                                <td colSpan={isSuperAdmin ? "8" : "7"} className="text-center py-8 text-gray-400">
                                     No tickets found.
                                 </td>
                             </tr>
@@ -317,11 +329,11 @@ export default function TicketsIndex({ tickets = [] }) {
                 }}
             />
 
-            {isSuperAdmin && ( 
+            {isSuperAdmin && (
                 <EditTicketModal show={showEdit} ticket={editTicket} onClose={() => setShowEdit(false)} />
-            )} 
+            )}
 
-            {isSuperAdmin && showDelete && deleteTicket && ( 
+            {isSuperAdmin && showDelete && deleteTicket && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div
                         className="absolute inset-0 bg-black/60"

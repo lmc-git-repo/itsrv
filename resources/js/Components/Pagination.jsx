@@ -3,10 +3,18 @@ import { Link } from "@inertiajs/react";
 export default function Pagination({ links = [], queryParams = {} }) {
     if (!links || links.length <= 1) return null;
 
+    const visibleLinks = links.filter(
+        (link) =>
+            link.label !== "&laquo; Previous" &&
+            link.label !== "Next &raquo;" &&
+            link.label !== "pagination.previous" &&
+            link.label !== "pagination.next"
+    );
+
     return (
         <div className="flex justify-center mt-6">
             <nav className="inline-flex items-center gap-2 text-sm">
-                {links.map((link, index) => {
+                {visibleLinks.map((link, index) => {
                     if (!link.url) {
                         return (
                             <span
@@ -22,8 +30,6 @@ export default function Pagination({ links = [], queryParams = {} }) {
                             key={index}
                             href={link.url}
                             preserveScroll
-                            preserveState
-                            data={queryParams}
                             className={`
                                 px-4 py-2 rounded-full border transition
                                 ${

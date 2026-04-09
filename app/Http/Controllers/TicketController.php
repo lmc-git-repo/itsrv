@@ -36,8 +36,20 @@ class TicketController extends Controller
             $query->where('resolved_by', $request->resolved_by);
         }
 
+        $tickets = $query->paginate(10)->withQueryString();
+
+        if ($tickets->isEmpty() && $tickets->currentPage() > 1) {
+            return redirect()->route('tickets.index', array_filter([
+                'search' => $request->search,
+                'status' => $request->status,
+                'department' => $request->department,
+                'resolved_by' => $request->resolved_by,
+                'page' => $tickets->lastPage(),
+            ]));
+        }
+
         return Inertia::render('Tickets/Index', [
-            'tickets' => $query->paginate(10)->withQueryString(),
+            'tickets' => $tickets,
             'users'   => User::where('role', 'superadmin')->select('id', 'name')->orderBy('name')->get(),
         ]);
     }
@@ -87,7 +99,8 @@ class TicketController extends Controller
     public function destroy(Ticket $ticket)
     {
         $ticket->delete();
-        return redirect()->route('tickets.index')->with('success', 'Ticket deleted successfully.');
+
+        return redirect()->back()->with('success', 'Ticket deleted successfully.');
     }
 
     public function update(Request $request, Ticket $ticket)
@@ -100,7 +113,7 @@ class TicketController extends Controller
             'status' => 'required|string',
             'date_opened' => 'required|date',
             'problem_solution' => 'nullable|string',
-            'progress_update' => 'nullable|string', // ✅ ADDED
+            'progress_update' => 'nullable|string',
             'resolved_by' => 'nullable|exists:users,id',
             'resolved_at' => 'nullable|date',
         ]);
@@ -119,7 +132,6 @@ class TicketController extends Controller
             $ticket->problem_solution = $existing . $formatted;
         }
 
-        // ✅ NEW: PROGRESS UPDATE THREAD
         $newProgress = $request->progress_update;
 
         if ($newProgress) {
