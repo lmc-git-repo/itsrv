@@ -153,10 +153,66 @@ p, span, label, div {
     background-color: #e9ecf4;
 }
 
+@media (max-width: 1366px) {
+    .its-login-bg {
+        padding-right: 80px;
+        background-size: cover;
+        background-position: left center;
+    }
+
+    .its-login-form-panel {
+        justify-content: flex-end;
+        padding-right: 0;
+    }
+
+    .its-login-card {
+        max-width: 390px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .its-login-bg {
+        padding-right: 50px;
+        background-size: cover;
+        background-position: left center;
+    }
+
+    .its-login-split {
+        justify-content: flex-end;
+    }
+
+    .its-login-form-panel {
+        justify-content: flex-end;
+    }
+
+    .its-login-card {
+        max-width: 360px;
+        padding: 38px 30px;
+    }
+}
+
 @media (max-width: 991px) {
+    .its-login-bg {
+        justify-content: center;
+        padding-right: 0;
+        padding-left: 0;
+        background-size: cover;
+        background-position: center center;
+    }
+
+    .its-login-split {
+        justify-content: center;
+    }
+
     .its-login-form-panel {
         width: 100%;
+        justify-content: center;
         padding: 28px 20px 36px;
+    }
+
+    .its-login-card {
+        max-width: 420px;
+        width: 100%;
     }
 }
 
