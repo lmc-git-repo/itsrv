@@ -93,7 +93,6 @@ export default function Create({ onClose }) {
                         required
                     >
                         <option value="" disabled>Select Equipment</option>
-                        <option value="Cellphone">Cellphone</option>
                         <option value="Desktop">Desktop</option>
                         <option value="Laptop">Laptop</option>
                         <option value="Mouse">Mouse</option>

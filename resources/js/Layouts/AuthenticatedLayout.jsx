@@ -3,7 +3,7 @@ import { Link, usePage } from '@inertiajs/react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
-    const isSuperAdmin = user?.role === "superadmin"; // ✅ INSERTED ONLY
+    const isSuperAdmin = user?.role === "superadmin";
 
     return (
         <div className="min-h-screen flex flex-col bg-[#101E33] text-white dashboard-bg">
@@ -62,6 +62,10 @@ export default function AuthenticatedLayout({ header, children }) {
 
                                         <Dropdown.Link href="/records/transfer-slip">
                                             Transfer Slip
+                                        </Dropdown.Link>
+
+                                        <Dropdown.Link href={route('cptransferslip.index')}>
+                                            Transfer Slip - Cellphone
                                         </Dropdown.Link>
                                     </Dropdown.Content>
                                 </Dropdown>

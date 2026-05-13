@@ -15,11 +15,13 @@ class Ticket extends Model
         'category',
         'problem_description',
         'problem_solution',
+        'progress_update',
         'status',
         'date_opened',
         'created_by',
         'resolved_by',
         'resolved_at',
+        'tracking_code',
     ];
 
     public function creator()

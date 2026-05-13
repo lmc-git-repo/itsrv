@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class TicketController extends Controller
 {
@@ -51,6 +52,94 @@ class TicketController extends Controller
         return Inertia::render('Tickets/Index', [
             'tickets' => $tickets,
             'users'   => User::where('role', 'superadmin')->select('id', 'name')->orderBy('name')->get(),
+        ]);
+    }
+
+    public function employeeIndex(Request $request)
+    {
+        $tickets = collect();
+
+        if ($request->tracking_code) {
+            $tickets = Ticket::where('tracking_code', $request->tracking_code)
+                ->latest()
+                ->get();
+        }
+
+        return Inertia::render('EmployeeTickets/Index', [
+            'tickets' => $tickets,
+            'tracking_code' => $request->tracking_code,
+        ]);
+    }
+
+    public function employeeStore(Request $request)
+    {
+        $request->validate([
+            'employee_name' => 'required|string',
+            'department' => 'required|string',
+            'category' => 'required|string',
+            'problem_description' => 'required|string',
+        ]);
+        
+        $trackingCode = strtoupper(Str::random(10));
+        
+        $ticket = Ticket::create([
+            'employee_name' => $request->employee_name,
+            'department' => $request->department,
+            'category' => $request->category,
+            'problem_description' => $request->problem_description,
+            'status' => 'Open',
+            'date_opened' => now(),
+            'tracking_code' => $trackingCode,
+            'created_by' => null,
+        ]);
+
+        $ticket->update([
+            'ticket_no' => 'TCK-' . str_pad($ticket->id, 4, '0', STR_PAD_LEFT),
+        ]);
+
+        return redirect()->route('employee.tickets', [
+            'tracking_code' => $trackingCode,
+        ]);
+    }
+
+        public function employeeEdit(Request $request, Ticket $ticket)
+    {
+        abort_if($ticket->tracking_code !== $request->tracking_code, 403);
+
+        return Inertia::render('EmployeeTickets/Edit', [
+            'ticket' => $ticket,
+            'tracking_code' => $request->tracking_code,
+        ]);
+    }
+
+    public function employeeUpdate(Request $request, Ticket $ticket)
+    {
+        abort_if($ticket->tracking_code !== $request->tracking_code, 403);
+
+        $request->validate([
+            'employee_name' => 'required|string',
+            'department' => 'required|string',
+            'category' => 'required|string',
+            'problem_description' => 'required|string',
+            'tracking_code' => 'required|string',
+        ]);
+
+        $ticket->update([
+            'employee_name' => $request->employee_name,
+            'department' => $request->department,
+            'category' => $request->category,
+            'problem_description' => $request->problem_description,
+        ]);
+
+        return redirect()->route('employee.tickets', [
+            'tracking_code' => $request->tracking_code,
+        ]);
+    }
+
+    public function employeeShow(Ticket $ticket)
+    {
+        return Inertia::render('EmployeeTickets/Show', [
+            'ticket' => $ticket,
         ]);
     }
 

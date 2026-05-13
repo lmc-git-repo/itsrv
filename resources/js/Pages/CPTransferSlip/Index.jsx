@@ -22,7 +22,7 @@ export default function Index({ records = [] }) {
     const filteredRecords = recordData.filter((r) => {
         const keyword = search.toLowerCase();
         return (
-            r.transfer_slip_no?.toLowerCase().includes(keyword) ||
+            r.cp_transfer_slip_no?.toLowerCase().includes(keyword) ||
             r.to?.toLowerCase().includes(keyword) ||
             r.from?.toLowerCase().includes(keyword) ||
             r.equipment?.toLowerCase().includes(keyword) ||
@@ -53,9 +53,9 @@ export default function Index({ records = [] }) {
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="text-lg font-semibold">Transfer Slip</h2>}
+            header={<h2 className="text-lg font-semibold">Transfer Slip - Cellphone</h2>}
         >
-            <Head title="Transfer Slip 1" />
+            <Head title="Transfer Slip - Cellphone" />
             <div
                 className="tr-wrapper records-page"
                 style={{ marginTop: "0" }}
@@ -76,7 +76,7 @@ export default function Index({ records = [] }) {
                             className="tr-add-btn"
                             onClick={() => setShowCreate(true)}
                         >
-                            🧾 Add
+                            📱 Add
                         </button>
                     )}
                 </div>
@@ -85,7 +85,7 @@ export default function Index({ records = [] }) {
                     <table className="tr-table">
                         <thead>
                             <tr>
-                                <th style={thStyle}>Transfer Slip No.</th>
+                                <th style={thStyle}>CP Transfer Slip No.</th>
                                 <th style={thStyle}>To</th>
                                 <th style={thStyle}>From</th>
                                 <th style={thStyle}>Date</th>
@@ -110,7 +110,7 @@ export default function Index({ records = [] }) {
                                             fontWeight: "500",
                                         }}
                                     >
-                                        No transfer slip records available.
+                                        No cellphone transfer slip records available.
                                     </td>
                                 </tr>
                             ) : (
@@ -120,13 +120,13 @@ export default function Index({ records = [] }) {
                                         className="cursor-pointer hover:bg-slate-100"
                                         onClick={() => setSelected(r)}
                                     >
-                                        <td style={tdStyle}>{r.transfer_slip_no}</td>
+                                        <td style={tdStyle}>{r.cp_transfer_slip_no}</td>
                                         <td style={tdStyle}>{r.to}</td>
                                         <td style={tdStyle}>{r.from}</td>
                                         <td style={tdStyle}>{r.date}</td>
                                         <td style={tdStyle}>{r.equipment}</td>
                                         <td style={tdStyle}>
-                                            {r.created_by_name ?? r.created_by}
+                                            {r.created_by_name ?? r.creator?.name ?? r.created_by}
                                         </td>
 
                                         {isSuperAdmin && (
@@ -158,7 +158,7 @@ export default function Index({ records = [] }) {
                                                     className="tr-action-btn"
                                                     onClick={() =>
                                                         window.open(
-                                                            route("transferslip.download", r.id),
+                                                            route("cptransferslip.download", r.id),
                                                             "_blank"
                                                         )
                                                     }
@@ -179,7 +179,6 @@ export default function Index({ records = [] }) {
                     />
                 </div>
 
-                {/* MODALS */}
                 {isSuperAdmin && showCreate && (
                     <Create onClose={() => setShowCreate(false)} />
                 )}
@@ -238,7 +237,7 @@ export default function Index({ records = [] }) {
                                     onClick={() => {
                                         router.delete(
                                             route(
-                                                "transferslip.destroy",
+                                                "cptransferslip.destroy",
                                                 deleteTarget.id
                                             ),
                                             {

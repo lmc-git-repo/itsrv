@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TroubleReportController;
 use App\Http\Controllers\TransferSlipController;
+use App\Http\Controllers\CPTransferSlipController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -12,6 +13,25 @@ use Inertia\Inertia;
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+/*
+|--------------------------------------------------------------------------
+| PUBLIC EMPLOYEE TICKETS
+|--------------------------------------------------------------------------
+*/
+Route::get('/employee/tickets', [TicketController::class, 'employeeIndex'])
+    ->name('employee.tickets');
+
+Route::post('/employee/tickets', [TicketController::class, 'employeeStore'])
+    ->name('employee.tickets.store');
+
+Route::get('/employee/tickets/{ticket}', [TicketController::class, 'employeeShow'])
+    ->name('employee.tickets.show');
+Route::get('/employee/tickets/{ticket}/edit', [TicketController::class, 'employeeEdit'])
+    ->name('employee.tickets.edit');
+
+Route::put('/employee/tickets/{ticket}', [TicketController::class, 'employeeUpdate'])
+    ->name('employee.tickets.update');
 
 /*
 |--------------------------------------------------------------------------
@@ -107,7 +127,34 @@ Route::middleware(['auth','role:superadmin,admin'])->group(function () {
 
 });
 
-/* SUPERADMIN ONLY (CRUD + DOWNLOAD) */
+/*
+|--------------------------------------------------------------------------
+| Cellphone Transfer Slip
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth','role:superadmin,admin'])->group(function () {
+
+    Route::get('/records/cp-transfer-slip', [CPTransferSlipController::class, 'index'])
+        ->name('cptransferslip.index');
+
+});
+
+Route::middleware(['auth','role:superadmin'])->group(function () {
+
+    Route::post('/records/cp-transfer-slip', [CPTransferSlipController::class, 'store'])
+        ->name('cptransferslip.store');
+
+    Route::put('/records/cp-transfer-slip/{cptransferslip}', [CPTransferSlipController::class, 'update'])
+        ->name('cptransferslip.update');
+
+    Route::delete('/records/cp-transfer-slip/{cptransferslip}', [CPTransferSlipController::class, 'destroy'])
+        ->name('cptransferslip.destroy');
+    
+    Route::get('/records/cp-transfer-slip/{cptransferslip}/download', [CPTransferSlipController::class, 'downloadWord'])
+    ->name('cptransferslip.download');
+
+});
+
 Route::middleware(['auth','role:superadmin'])->group(function () {
 
     Route::prefix('records/transfer-slip')->name('transferslip.')->group(function () {

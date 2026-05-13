@@ -5,19 +5,23 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // ✅ STATUS TOTALS (UNCHANGED)
+        $weekStart = Carbon::now()->startOfWeek();
+        $weekEnd = Carbon::now()->endOfWeek();
+
+        //STATUS
         $totals = [
             'open'     => DB::table('tickets')->where('status', 'Open')->count() ?? 0,
             'ongoing'  => DB::table('tickets')->where('status', 'Ongoing')->count() ?? 0,
             'resolved' => DB::table('tickets')->where('status', 'Resolved')->count() ?? 0,
         ];
 
-        // ✅ CATEGORY LIST (UNCHANGED)
+        //CATEGORY LIST
         $categories = [
             'Application & System Support',
             'Hardware Support & Device Setup',
@@ -29,7 +33,7 @@ class DashboardController extends Controller
             'Security & Permissions',
         ];
 
-        // ✅ TOTAL COUNT PER CATEGORY (UNCHANGED)
+        //TOTAL COUNT PER CATEGORY
         $categoryStats = [];
 
         foreach ($categories as $cat) {
@@ -41,7 +45,6 @@ class DashboardController extends Controller
             ];
         }
 
-        // ✅ FIX: FORCE PLAIN ARRAY FOR REACT FILTERING
         $tickets = DB::table('tickets')
             ->select(
                 'id',
@@ -56,10 +59,40 @@ class DashboardController extends Controller
             ->map(fn ($t) => (array) $t)
             ->toArray();
 
+        $weeklyTasks = DB::table('tickets')
+        ->leftJoin('users as resolvers', 'tickets.resolved_by', '=', 'resolvers.id')
+        ->select(
+            'tickets.id',
+            'tickets.ticket_no',
+            'tickets.employee_name',
+            'tickets.department',
+            'tickets.category',
+            'tickets.status',
+            'tickets.problem_description',
+            'tickets.date_opened',
+            'tickets.resolved_at',
+            'resolvers.name as resolved_by_name',
+            'tickets.created_at',
+            'tickets.updated_at'
+        )
+        ->where(function ($query) use ($weekStart, $weekEnd) {
+            $query->whereBetween('tickets.created_at', [$weekStart, $weekEnd])
+                ->orWhereBetween('tickets.updated_at', [$weekStart, $weekEnd]);
+        })
+        ->orderBy('tickets.updated_at', 'desc')
+        ->get()
+        ->map(fn ($t) => (array) $t)
+        ->toArray();
+
         return Inertia::render('Dashboard', [
             'totals' => $totals,
             'categories' => $categoryStats,
-            'tickets' => $tickets, // ✅ NOW FILTERS CORRECTLY
+            'tickets' => $tickets,
+            'weeklyTasks' => $weeklyTasks,
+            'weeklyRange' => [
+                'start' => $weekStart->format('M d, Y'),
+                'end' => $weekEnd->format('M d, Y'),
+            ],
         ]);
     }
 }
