@@ -234,9 +234,23 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "" 
 
                 </div>
 
-                <footer className="employee-ticket-footer">
-                    If your ticket concern submitted through this form is not addressed immediately, please call local 41 or email itd@lagunametts.com through Outlook.
-                </footer>
+                <footer
+                className="employee-ticket-footer"
+                style={{
+                    width: "100%",
+                    maxWidth: "1600px",
+                    minHeight: "58px",
+                    margin: "55px auto 60px",
+                    padding: "0 24px",
+                    borderRadius: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    textAlign: "center",
+                }}
+            >
+                If your ticket concern submitted through this form is not addressed immediately, please call local 41 or email itd@lagunametts.com through Outlook.
+            </footer>
             </div>
 
             {selectedTicket && (
