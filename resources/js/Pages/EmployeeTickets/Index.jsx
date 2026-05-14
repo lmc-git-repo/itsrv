@@ -183,7 +183,7 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "" 
                     <section className="employee-ticket-monitor-card">
                         <div className="employee-ticket-monitor-header">
                             <h2>Ticket Monitoring Table</h2>
-                            <p>Check submitted ticket status updates below</p>
+                            <p>Check submitted ticket status updates below, just refresh the page to see the latest updates.</p>
                         </div>
 
                         <div className="employee-ticket-list">
