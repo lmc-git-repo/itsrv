@@ -1,4 +1,4 @@
-import { Head, useForm } from "@inertiajs/react";
+import { Head, Link, useForm } from "@inertiajs/react";
 import GuestLayout from "@/Layouts/GuestLayout";
 
 export default function Login() {
@@ -28,7 +28,6 @@ export default function Login() {
                         <div className="its-login-title">IT TICKETING SYSTEM</div>
                     </div>
 
-                    {/* ✅ ERROR MESSAGE (WRONG USERNAME/PASSWORD OR REQUIRED FIELDS) */}
                     {(errors?.name || errors?.password) && (
                         <div
                             style={{
@@ -79,6 +78,17 @@ export default function Login() {
                             LOGIN
                         </button>
                     </form>
+
+                    <div className="its-employee-ticket-link-wrapper">
+                        <div className="its-employee-ticket-divider">
+                        </div>
+                        <Link
+                            href={route("employee.tickets")}
+                            className="its-employee-ticket-btn"
+                        >
+                            LMC Employee Ticket Form
+                        </Link>
+                    </div>
                 </div>
             </div>
         </GuestLayout>
