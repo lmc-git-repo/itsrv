@@ -1,9 +1,10 @@
-import { Head, useForm } from "@inertiajs/react";
+import { Head, router, useForm } from "@inertiajs/react";
 import { useEffect, useState } from "react";
 
 export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "" }) {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [editTicket, setEditTicket] = useState(null);
+    const [monitorTrackingCode, setMonitorTrackingCode] = useState("");
 
     const { data, setData, post, processing, reset } = useForm({
         employee_name: "",
@@ -46,13 +47,24 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "" 
     ];
 
     useEffect(() => {
+        const savedTrackingCode = localStorage.getItem("employee_tracking_code");
+
+        if (tracking_code) {
+            localStorage.setItem("employee_tracking_code", tracking_code);
+            setMonitorTrackingCode(tracking_code);
+        } else if (savedTrackingCode) {
+            setMonitorTrackingCode(savedTrackingCode);
+        }
+    }, [tracking_code]);
+
+    useEffect(() => {
         if (editTicket) {
             setEditData({
                 employee_name: editTicket.employee_name || "",
                 department: editTicket.department || "",
                 category: editTicket.category || "",
                 problem_description: editTicket.problem_description || "",
-                tracking_code: tracking_code || editTicket.tracking_code || "",
+                tracking_code: tracking_code || editTicket.tracking_code || monitorTrackingCode || "",
             });
         }
     }, [editTicket]);
@@ -63,6 +75,18 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "" 
         post(route("employee.tickets.store"), {
             preserveScroll: true,
             onSuccess: () => reset(),
+        });
+    };
+
+    const checkTicketStatus = (e) => {
+        e.preventDefault();
+
+        if (!monitorTrackingCode.trim()) return;
+
+        localStorage.setItem("employee_tracking_code", monitorTrackingCode.trim());
+
+        router.get(route("employee.tickets"), {
+            tracking_code: monitorTrackingCode.trim(),
         });
     };
 
@@ -90,9 +114,9 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "" 
         }
     };
 
-    const visibleTickets = tickets.filter(
-        (ticket) => ticket.status === "Open" || ticket.status === "Ongoing"
-    );
+    const visibleTickets = tracking_code
+        ? tickets
+        : tickets.filter((ticket) => ticket.status === "Open" || ticket.status === "Ongoing");
 
     return (
         <>
@@ -183,8 +207,24 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "" 
                     <section className="employee-ticket-monitor-card">
                         <div className="employee-ticket-monitor-header">
                             <h2>Ticket Monitoring Table</h2>
-                            <p>Refresh the page to see recent changes in your concern below</p>
+                            <p>Enter your tracking code to check your ticket status. Refresh this page to see latest updates.</p>
                         </div>
+
+                        <form onSubmit={checkTicketStatus} className="employee-ticket-monitor-form">
+                        <div>
+                            <label>Tracking Code</label>
+                            <input
+                                type="text"
+                                value={monitorTrackingCode}
+                                onChange={(e) => setMonitorTrackingCode(e.target.value.toUpperCase())}
+                                placeholder="Enter your tracking code"
+                            />
+                        </div>
+
+                        <button type="submit">
+                            Check Status
+                        </button>
+                    </form>
 
                         <div className="employee-ticket-list">
                             {visibleTickets.length === 0 && (
@@ -235,22 +275,22 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "" 
                 </div>
 
                 <footer
-                className="employee-ticket-footer"
-                style={{
-                    width: "100%",
-                    maxWidth: "1600px",
-                    minHeight: "58px",
-                    margin: "55px auto 60px",
-                    padding: "0 24px",
-                    borderRadius: "10px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    textAlign: "center",
-                }}
-            >
-                If your ticket concern submitted through this form is not addressed immediately, please call local 41 or email itd@lagunametts.com through Outlook.
-            </footer>
+                    className="employee-ticket-footer"
+                    style={{
+                        width: "100%",
+                        maxWidth: "1600px",
+                        minHeight: "58px",
+                        margin: "55px auto 60px",
+                        padding: "0 24px",
+                        borderRadius: "10px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        textAlign: "center",
+                    }}
+                >
+                    If your ticket concern submitted through this form is not addressed immediately, please call local 41 or email itd@lagunametts.com through Outlook.
+                </footer>
             </div>
 
             {selectedTicket && (

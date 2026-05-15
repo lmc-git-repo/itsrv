@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 class TicketController extends Controller
 {
@@ -18,6 +17,7 @@ class TicketController extends Controller
         if ($request->search) {
             $query->where(function ($q) use ($request) {
                 $q->where('ticket_no', 'like', "%{$request->search}%")
+                  ->orWhere('tracking_code', 'like', "%{$request->search}%")
                   ->orWhere('employee_name', 'like', "%{$request->search}%")
                   ->orWhere('department', 'like', "%{$request->search}%")
                   ->orWhere('problem_description', 'like', "%{$request->search}%")
@@ -60,7 +60,13 @@ class TicketController extends Controller
         $tickets = collect();
 
         if ($request->tracking_code) {
-            $tickets = Ticket::where('tracking_code', $request->tracking_code)
+            $trackingCode = strtoupper(trim($request->tracking_code));
+
+            $tickets = Ticket::whereNull('created_by')
+                ->where(function ($query) use ($trackingCode) {
+                    $query->where('tracking_code', $trackingCode)
+                        ->orWhere('ticket_no', $trackingCode);
+                })
                 ->latest()
                 ->get();
         }
@@ -80,8 +86,6 @@ class TicketController extends Controller
             'problem_description' => 'required|string',
         ]);
         
-        $trackingCode = strtoupper(Str::random(10));
-        
         $ticket = Ticket::create([
             'employee_name' => $request->employee_name,
             'department' => $request->department,
@@ -89,22 +93,30 @@ class TicketController extends Controller
             'problem_description' => $request->problem_description,
             'status' => 'Open',
             'date_opened' => now(),
-            'tracking_code' => $trackingCode,
             'created_by' => null,
         ]);
 
+        $ticketNo = 'TCK-' . str_pad($ticket->id, 4, '0', STR_PAD_LEFT);
+
         $ticket->update([
-            'ticket_no' => 'TCK-' . str_pad($ticket->id, 4, '0', STR_PAD_LEFT),
+            'ticket_no' => $ticketNo,
+            'tracking_code' => $ticketNo,
         ]);
 
         return redirect()->route('employee.tickets', [
-            'tracking_code' => $trackingCode,
+            'tracking_code' => $ticketNo,
         ]);
     }
 
-        public function employeeEdit(Request $request, Ticket $ticket)
+    public function employeeEdit(Request $request, Ticket $ticket)
     {
-        abort_if($ticket->tracking_code !== $request->tracking_code, 403);
+        abort_if($ticket->created_by !== null, 403);
+
+        abort_if(
+            $ticket->tracking_code !== $request->tracking_code &&
+            $ticket->ticket_no !== $request->tracking_code,
+            403
+        );
 
         return Inertia::render('EmployeeTickets/Edit', [
             'ticket' => $ticket,
@@ -114,7 +126,13 @@ class TicketController extends Controller
 
     public function employeeUpdate(Request $request, Ticket $ticket)
     {
-        abort_if($ticket->tracking_code !== $request->tracking_code, 403);
+        abort_if($ticket->created_by !== null, 403);
+
+        abort_if(
+            $ticket->tracking_code !== $request->tracking_code &&
+            $ticket->ticket_no !== $request->tracking_code,
+            403
+        );
 
         $request->validate([
             'employee_name' => 'required|string',
@@ -166,8 +184,11 @@ class TicketController extends Controller
             'created_by' => Auth::id(),
         ]);
 
+        $ticketNo = 'TCK-' . str_pad($ticket->id, 4, '0', STR_PAD_LEFT);
+
         $ticket->update([
-            'ticket_no' => 'TCK-' . str_pad($ticket->id, 4, '0', STR_PAD_LEFT),
+            'ticket_no' => $ticketNo,
+            'tracking_code' => $ticketNo,
         ]);
 
         return redirect()->route('tickets.index')->with('success', 'Ticket created successfully.');
