@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Head, usePage } from "@inertiajs/react";
+import { Head, router, usePage } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
@@ -97,7 +97,7 @@ export default function Dashboard({
   categories = [],
   tickets = [],
   weeklyTasks = [],
-  weeklyRange = { start: "", end: "" },
+  weeklyRange = { start: "", end: "", selectedDate: "" },
 }) {
   const [showModal, setShowModal] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -105,9 +105,23 @@ export default function Dashboard({
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [showWeeklyModal, setShowWeeklyModal] = useState(false);
+  const [selectedWeekDate, setSelectedWeekDate] = useState(weeklyRange.selectedDate || "");
 
   const pageTickets = usePage().props.tickets ?? [];
   const sourceTickets = tickets.length ? tickets : pageTickets;
+
+  const filterWeeklyTasks = (date) => {
+    setSelectedWeekDate(date);
+
+    router.get(
+      route("dashboard"),
+      { week_date: date },
+      {
+        preserveScroll: true,
+        preserveState: true,
+      }
+    );
+  };
 
   const othersTotal = Array.isArray(sourceTickets)
     ? sourceTickets.filter((t) => (t?.category ?? "").trim() === "Others").length
@@ -208,19 +222,31 @@ export default function Dashboard({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
           <div
-            className="rounded-lg shadow-its px-8 py-7 flex flex-col cursor-pointer hover:opacity-90 overflow-hidden"
+            className="rounded-lg shadow-its px-8 py-3 flex flex-col cursor-pointer hover:opacity-90 overflow-hidden"
             style={{ backgroundColor: "#162845", height: "420px" }}
             onClick={() => setShowWeeklyModal(true)}
           >
-            <h2 className="text-center text-lg font-semibold tracking-[0.25em] mb-6">
+            <h2 className="text-center text-lg font-semibold tracking-[0.25em] mb-3">
               WEEKLY IT TASKS
             </h2>
 
-            <div className="text-center text-xs text-gray-300 mb-8">
-              {weeklyRange.start} to {weeklyRange.end}
+            <div
+              className="text-center text-xs text-gray-300 mb-2"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="mb-2">
+                {weeklyRange.start} to {weeklyRange.end}
+              </div>
+
+              <input
+                type="date"
+                value={selectedWeekDate}
+                onChange={(e) => filterWeeklyTasks(e.target.value)}
+                className="rounded-md border border-white/20 bg-white text-[#101E33] px-3 py-1 text-xs"
+              />
             </div>
 
-            <div className="flex-1 min-h-0 overflow-hidden space-y-3">
+            <div className="flex-1 min-h-0 overflow-hidden mt-4 space-y-1">
               {weeklyTasks.length > 0 ? (
                 weeklyTasks.slice(0, 3).map((task) => (
                   <div key={task.id} className="rounded-lg bg-white/5 border border-white/20 px-5 py-4">
@@ -311,9 +337,18 @@ export default function Dashboard({
               Weekly IT Tasks
             </h2>
 
-            <p className="text-center text-sm text-gray-500 mb-6">
-              {weeklyRange.start} to {weeklyRange.end}
-            </p>
+            <div className="text-center text-sm text-gray-500 mb-6">
+              <div className="mb-3">
+                {weeklyRange.start} to {weeklyRange.end}
+              </div>
+
+              <input
+                type="date"
+                value={selectedWeekDate}
+                onChange={(e) => filterWeeklyTasks(e.target.value)}
+                className="rounded-md border px-3 py-2 text-sm text-[#101E33]"
+              />
+            </div>
 
             <div className="overflow-x-auto max-h-[65vh] overflow-y-auto">
               <table className="min-w-[1400px] w-full text-sm border border-gray-200">
@@ -420,6 +455,7 @@ export default function Dashboard({
               className="absolute top-4 right-4 text-gray-500 hover:text-black text-xl"
             >
               ✕
+
             </button>
 
             <h2 className="text-2xl md:text-2xl font-bold mb-6 text-[#101E33] text-center">

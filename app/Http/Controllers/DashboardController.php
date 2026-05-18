@@ -4,15 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $weekStart = Carbon::now()->startOfWeek();
-        $weekEnd = Carbon::now()->endOfWeek();
+        $selectedDate = $request->week_date
+            ? Carbon::parse($request->week_date, 'Asia/Manila')
+            : Carbon::now('Asia/Manila');
+
+        $weekStart = $selectedDate->copy()->startOfWeek(Carbon::MONDAY)->startOfDay();
+        $weekEnd = $selectedDate->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
 
         //STATUS
         $totals = [
@@ -60,29 +65,30 @@ class DashboardController extends Controller
             ->toArray();
 
         $weeklyTasks = DB::table('tickets')
-        ->leftJoin('users as resolvers', 'tickets.resolved_by', '=', 'resolvers.id')
-        ->select(
-            'tickets.id',
-            'tickets.ticket_no',
-            'tickets.employee_name',
-            'tickets.department',
-            'tickets.category',
-            'tickets.status',
-            'tickets.problem_description',
-            'tickets.date_opened',
-            'tickets.resolved_at',
-            'resolvers.name as resolved_by_name',
-            'tickets.created_at',
-            'tickets.updated_at'
-        )
-        ->where(function ($query) use ($weekStart, $weekEnd) {
-            $query->whereBetween('tickets.created_at', [$weekStart, $weekEnd])
-                ->orWhereBetween('tickets.updated_at', [$weekStart, $weekEnd]);
-        })
-        ->orderBy('tickets.updated_at', 'desc')
-        ->get()
-        ->map(fn ($t) => (array) $t)
-        ->toArray();
+            ->leftJoin('users as resolvers', 'tickets.resolved_by', '=', 'resolvers.id')
+            ->select(
+                'tickets.id',
+                'tickets.ticket_no',
+                'tickets.employee_name',
+                'tickets.department',
+                'tickets.category',
+                'tickets.status',
+                'tickets.problem_description',
+                'tickets.date_opened',
+                'tickets.resolved_at',
+                'resolvers.name as resolved_by_name',
+                'tickets.created_at',
+                'tickets.updated_at'
+            )
+            ->where(function ($query) use ($weekStart, $weekEnd) {
+                $query->whereBetween('tickets.created_at', [$weekStart, $weekEnd])
+                    ->orWhereBetween('tickets.updated_at', [$weekStart, $weekEnd])
+                    ->orWhereBetween('tickets.date_opened', [$weekStart->toDateString(), $weekEnd->toDateString()]);
+            })
+            ->orderBy('tickets.updated_at', 'desc')
+            ->get()
+            ->map(fn ($t) => (array) $t)
+            ->toArray();
 
         return Inertia::render('Dashboard', [
             'totals' => $totals,
@@ -92,6 +98,7 @@ class DashboardController extends Controller
             'weeklyRange' => [
                 'start' => $weekStart->format('M d, Y'),
                 'end' => $weekEnd->format('M d, Y'),
+                'selectedDate' => $selectedDate->format('Y-m-d'),
             ],
         ]);
     }
