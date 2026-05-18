@@ -81,11 +81,10 @@ class DashboardController extends Controller
                 'tickets.updated_at'
             )
             ->where(function ($query) use ($weekStart, $weekEnd) {
-                $query->whereBetween('tickets.created_at', [$weekStart, $weekEnd])
-                    ->orWhereBetween('tickets.updated_at', [$weekStart, $weekEnd])
-                    ->orWhereBetween('tickets.date_opened', [$weekStart->toDateString(), $weekEnd->toDateString()]);
+                $query->whereBetween('tickets.date_opened', [$weekStart->toDateString(), $weekEnd->toDateString()])
+                    ->orWhereBetween('tickets.resolved_at', [$weekStart, $weekEnd]);
             })
-            ->orderBy('tickets.updated_at', 'desc')
+            ->orderBy('tickets.date_opened', 'desc')
             ->get()
             ->map(fn ($t) => (array) $t)
             ->toArray();

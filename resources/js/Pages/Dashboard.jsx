@@ -226,12 +226,12 @@ export default function Dashboard({
             style={{ backgroundColor: "#162845", height: "420px" }}
             onClick={() => setShowWeeklyModal(true)}
           >
-            <h2 className="text-center text-lg font-semibold tracking-[0.25em] mb-3">
+            <h2 className="text-center text-lg font-semibold tracking-[0.25em] mt-2 mb-3">
               WEEKLY IT TASKS
             </h2>
 
             <div
-              className="text-center text-xs text-gray-300 mb-2"
+              className="text-center text-xs text-gray-300 mb-1"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="mb-2">
@@ -246,7 +246,7 @@ export default function Dashboard({
               />
             </div>
 
-            <div className="flex-1 min-h-0 overflow-hidden mt-4 space-y-1">
+            <div className="flex-1 min-h-0 overflow-hidden mt-3 space-y-1">
               {weeklyTasks.length > 0 ? (
                 weeklyTasks.slice(0, 3).map((task) => (
                   <div key={task.id} className="rounded-lg bg-white/5 border border-white/20 px-5 py-4">
