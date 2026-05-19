@@ -64,6 +64,10 @@ export default function Dashboard({
   const pageTickets = usePage().props.tickets ?? [];
   const sourceTickets = tickets.length ? tickets : pageTickets;
 
+  useEffect(() => {
+    setSelectedWeekDate(weeklyRange.selectedDate || "");
+  }, [weeklyRange.selectedDate]);
+
   const filterWeeklyTasks = (date) => {
     setSelectedWeekDate(date);
 
@@ -73,6 +77,7 @@ export default function Dashboard({
       {
         preserveScroll: true,
         preserveState: true,
+        only: ["weeklyTasks", "weeklyRange"],
       }
     );
   };

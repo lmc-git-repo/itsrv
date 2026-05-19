@@ -87,6 +87,7 @@ class DashboardController extends Controller
                     ->orWhereBetween('tickets.resolved_at', [$weekStart, $weekEnd]);
             })
             ->orderBy('tickets.date_opened', 'desc')
+            ->orderBy('tickets.id', 'desc')
             ->get()
             ->map(fn ($t) => (array) $t)
             ->toArray();
