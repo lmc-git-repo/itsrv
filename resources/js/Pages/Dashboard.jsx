@@ -45,53 +45,6 @@ const StatCard = ({ title, value, accent, onClick }) => (
   </div>
 );
 
-const CATEGORY_INFO = {
-  "Application & System Support": {
-    meaning:
-      "Issues related to internal systems, software applications, and business tools used by employees.",
-    examples: ["ERP system not loading", "Payroll system error", "Internal web app not responding"],
-  },
-  "Hardware Support & Device Setup": {
-    meaning:
-      "Physical device issues or setup requests for computers and peripherals.",
-    examples: ["New laptop setup", "Printer not working", "Monitor display issue"],
-  },
-  "Account & Access Management": {
-    meaning:
-      "Requests related to user accounts, logins, and system access permissions.",
-    examples: ["Password reset", "New employee account creation", "System access request"],
-  },
-  "File, Data & Document Management": {
-    meaning:
-      "Concerns involving files, shared folders, backups, and document handling.",
-    examples: ["Lost files", "Shared drive access", "File recovery request"],
-  },
-  "Network & Connectivity Support": {
-    meaning:
-      "Internet, LAN, WiFi, VPN, or network-related issues affecting connectivity.",
-    examples: ["No internet connection", "VPN not connecting", "Slow network speed"],
-  },
-  "IT Operations & Maintenance": {
-    meaning:
-      "Routine IT operations, maintenance tasks, and system health checks.",
-    examples: ["System updates", "Server maintenance", "Scheduled downtime"],
-  },
-  "Asset & Equipment Handling": {
-    meaning:
-      "Tracking, issuance, return, and maintenance of IT assets and equipment.",
-    examples: ["Laptop issuance", "Device replacement", "Asset inventory update"],
-  },
-  "Security & Permissions": {
-    meaning:
-      "Security-related issues including permissions, threats, and policy enforcement.",
-    examples: ["Suspicious login activity", "Permission denied error", "Security incident report"],
-  },
-  Others: {
-    meaning: "Non-IT support tasks requested from IT, like admin/document tasks.",
-    examples: ["Created a company ID for employee", "Printed ID / document assistance", "Other requests not under IT categories"],
-  },
-};
-
 export default function Dashboard({
   totals = { open: 0, ongoing: 0, resolved: 0 },
   categories = [],
@@ -104,6 +57,7 @@ export default function Dashboard({
   const [filteredTickets, setFilteredTickets] = useState([]);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [categoryTickets, setCategoryTickets] = useState([]);
   const [showWeeklyModal, setShowWeeklyModal] = useState(false);
   const [selectedWeekDate, setSelectedWeekDate] = useState(weeklyRange.selectedDate || "");
 
@@ -146,6 +100,16 @@ export default function Dashboard({
     setShowModal(true);
   };
 
+  const openCategoryModal = (category) => {
+    setSelectedCategory(category);
+    setCategoryTickets(
+      sourceTickets.filter(
+        (t) => (t?.category ?? "").trim() === category
+      )
+    );
+    setShowCategoryModal(true);
+  };
+
   useEffect(() => {
     if (!showModal || !selectedStatus) return;
 
@@ -157,6 +121,16 @@ export default function Dashboard({
       )
     );
   }, [sourceTickets, showModal, selectedStatus]);
+
+  useEffect(() => {
+    if (!showCategoryModal || !selectedCategory) return;
+
+    setCategoryTickets(
+      sourceTickets.filter(
+        (t) => (t?.category ?? "").trim() === selectedCategory
+      )
+    );
+  }, [sourceTickets, showCategoryModal, selectedCategory]);
 
   useEffect(() => {
     const handleEsc = (e) => {
@@ -309,14 +283,81 @@ export default function Dashboard({
               title={cat.name}
               value={cat.total}
               accent={categoryColors[index % categoryColors.length]}
-              onClick={() => {
-                setSelectedCategory(cat.name);
-                setShowCategoryModal(true);
-              }}
+              onClick={() => openCategoryModal(cat.name)}
             />
           ))}
         </div>
       </div>
+
+      {showCategoryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60"
+            onClick={() => setShowCategoryModal(false)}
+          />
+
+          <div className="relative bg-white rounded-xl w-full max-w-6xl p-6 shadow-xl z-10">
+            <button
+              onClick={() => setShowCategoryModal(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-black text-xl"
+            >
+              ✕
+            </button>
+
+            <h2 className="text-2xl font-bold mb-6 text-[#101E33] text-center">
+              {selectedCategory}
+            </h2>
+
+            <div className="overflow-x-auto max-h-[65vh] overflow-y-auto">
+              <table className="w-full text-sm border">
+                <thead className="bg-gray-100 text-left text-gray-800 sticky top-0 z-10">
+                  <tr>
+                    <th className="p-3 border text-sm font-semibold">Ticket No.</th>
+                    <th className="p-3 border text-sm font-semibold">Employee Name</th>
+                    <th className="p-3 border text-sm font-semibold">Department</th>
+                    <th className="p-3 border text-sm font-semibold">Status</th>
+                    <th className="p-3 border text-sm font-semibold">Category</th>
+                    <th className="p-3 border text-sm font-semibold">Problem Description</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {categoryTickets.length > 0 ? (
+                    categoryTickets.map((ticket) => (
+                      <tr key={ticket.id} className="border-t text-gray-800 align-top">
+                        <td className="p-3 border text-sm font-medium whitespace-nowrap">
+                          {ticket.ticket_no || "—"}
+                        </td>
+                        <td className="p-3 border text-sm font-medium">
+                          {ticket.employee_name}
+                        </td>
+                        <td className="p-3 border text-sm font-medium">
+                          {ticket.department}
+                        </td>
+                        <td className="p-3 border text-sm font-medium whitespace-nowrap">
+                          {ticket.status}
+                        </td>
+                        <td className="p-3 border text-sm font-medium">
+                          {ticket.category || "—"}
+                        </td>
+                        <td className="p-3 border text-sm font-medium leading-relaxed break-words">
+                          {ticket.problem_description}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="p-4 text-center text-gray-500">
+                        No tickets found for this category.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showWeeklyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -395,53 +436,6 @@ export default function Dashboard({
         </div>
       )}
 
-      {showCategoryModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/60"
-            onClick={() => setShowCategoryModal(false)}
-          />
-
-          <div className="relative bg-white rounded-xl w-full max-w-lg p-6 shadow-xl z-10">
-            <button
-              onClick={() => setShowCategoryModal(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-black text-xl"
-            >
-              ✕
-            </button>
-
-            <h2 className="text-2xl font-bold mb-4 text-[#101E33] text-center">
-              {selectedCategory}
-            </h2>
-
-            <div className="text-base text-gray-800">
-              <div className="mb-4">
-                <div className="font-semibold text-[#101E33] mb-1">Meaning</div>
-                <div>
-                  {CATEGORY_INFO[selectedCategory]?.meaning ??
-                    "No description available for this category."}
-                </div>
-              </div>
-
-              <div>
-                <div className="font-semibold text-[#101E33] mb-1">
-                  Sample Issues
-                </div>
-                <ul className="list-disc list-inside space-y-1">
-                  {(CATEGORY_INFO[selectedCategory]?.examples ?? []).length ? (
-                    CATEGORY_INFO[selectedCategory].examples.map((ex, idx) => (
-                      <li key={idx}>{ex}</li>
-                    ))
-                  ) : (
-                    <li>No sample issues available.</li>
-                  )}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
@@ -455,7 +449,6 @@ export default function Dashboard({
               className="absolute top-4 right-4 text-gray-500 hover:text-black text-xl"
             >
               ✕
-
             </button>
 
             <h2 className="text-2xl md:text-2xl font-bold mb-6 text-[#101E33] text-center">

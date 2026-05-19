@@ -53,10 +53,12 @@ class DashboardController extends Controller
         $tickets = DB::table('tickets')
             ->select(
                 'id',
+                'ticket_no',
                 'employee_name',
                 'department',
                 'category',
                 'status',
+                'date_opened',
                 'problem_description'
             )
             ->orderBy('created_at', 'desc')
