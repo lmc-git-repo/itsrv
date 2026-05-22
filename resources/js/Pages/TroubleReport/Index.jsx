@@ -38,6 +38,7 @@ export default function TroubleReportIndex({ reports = [] }) {
             r.section,
             r.username,
             r.computer_type,
+            r.problem_report,
             r.created_by,
         ];
 
@@ -92,17 +93,36 @@ export default function TroubleReportIndex({ reports = [] }) {
                 </div>
 
                 <div className="tickets-table-wrapper">
-                    <table className="tickets-table records-table">
+                    <table
+                        className="tickets-table records-table"
+                        style={{
+                            tableLayout: "fixed",
+                            width: "100%",
+                            minWidth: "1100px",
+                        }}
+                    >
+                        <colgroup>
+                            <col style={{ width: "9%" }} />
+                            <col style={{ width: "6%" }} />
+                            <col style={{ width: "13%" }} />
+                            <col style={{ width: "6%" }} />
+                            <col style={{ width: "9%" }} />
+                            <col style={{ width: "10%" }} />
+                            <col style={{ width: "9%" }} />
+                            {isSuperAdmin && <col style={{ width: "8%" }} />}
+                        </colgroup>
+
                         <thead>
                             <tr>
-                                <th>Trouble Report No.</th>
-                                <th>Computer No.</th>
-                                <th>WorkGroup</th>
-                                <th>Username</th>
-                                <th>Computer Type</th>
-                                <th>Created By</th>
+                                <th className="text-left align-middle">Trouble Report No.</th>
+                                <th className="text-left align-middle">Computer No.</th>
+                                <th className="text-left align-middle">WorkGroup</th>
+                                <th className="text-left align-middle">Username</th>
+                                <th className="text-left align-middle">Computer Type</th>
+                                <th className="text-left align-middle">Problem Report</th>
+                                <th className="text-left align-middle">Created By</th>
                                 {isSuperAdmin && (
-                                    <th>Actions</th>
+                                    <th className="text-center">Actions</th>
                                 )}
                             </tr>
                         </thead>
@@ -118,48 +138,51 @@ export default function TroubleReportIndex({ reports = [] }) {
                                             setShowView(true);
                                         }}
                                     >
-                                        <td>{r.tr_no}</td>
-                                        <td>{r.computer_no}</td>
-                                        <td>{r.work_group}</td>
-                                        <td>{r.username}</td>
-                                        <td>{r.computer_type}</td>
-                                        <td>{r.created_by}</td>
+                                        <td className="whitespace-normal break-words text-left">{r.tr_no}</td>
+                                        <td className="whitespace-normal break-words text-left">{r.computer_no}</td>
+                                        <td className="whitespace-normal break-words text-left">{r.work_group}</td>
+                                        <td className="whitespace-normal break-words text-left">{r.username}</td>
+                                        <td className="whitespace-normal break-words text-left">{r.computer_type}</td>
+                                        <td className="whitespace-normal break-words text-left">{r.problem_report}</td>
+                                        <td className="whitespace-normal break-words text-left">{r.created_by}</td>
 
                                         {isSuperAdmin && (
                                             <td
-                                                className="space-x-3"
+                                                className="whitespace-nowrap"
                                                 onClick={(e) => e.stopPropagation()}
                                             >
-                                                <button
-                                                    onClick={() => {
-                                                        setSelected(r);
-                                                        setShowEdit(true);
-                                                    }}
-                                                >
-                                                    ✏️
-                                                </button>
+                                                <div className="flex items-center justify-center gap-3">
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelected(r);
+                                                            setShowEdit(true);
+                                                        }}
+                                                    >
+                                                        ✏️
+                                                    </button>
 
-                                                <button
-                                                    onClick={() => {
-                                                        setDeleteTarget(r);
-                                                        setShowDelete(true);
-                                                    }}
-                                                >
-                                                    🗑
-                                                </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setDeleteTarget(r);
+                                                            setShowDelete(true);
+                                                        }}
+                                                    >
+                                                        🗑
+                                                    </button>
 
-                                                <button
-                                                    onClick={() => {
-                                                        if (!r?.id) return;
-                                                        window.location.href = route(
-                                                            "troublereport.download",
-                                                            { troublereport: r.id }
-                                                        );
-                                                    }}
-                                                    title="Download Excel"
-                                                >
-                                                    ⬇️
-                                                </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (!r?.id) return;
+                                                            window.location.href = route(
+                                                                "troublereport.download",
+                                                                { troublereport: r.id }
+                                                            );
+                                                        }}
+                                                        title="Download Excel"
+                                                    >
+                                                        ⬇️
+                                                    </button>
+                                                </div>
                                             </td>
                                         )}
                                     </tr>
@@ -167,7 +190,7 @@ export default function TroubleReportIndex({ reports = [] }) {
                             ) : (
                                 <tr>
                                     <td
-                                        colSpan={isSuperAdmin ? "7" : "6"}
+                                        colSpan={isSuperAdmin ? "8" : "7"}
                                         className="text-center py-6 text-gray-500"
                                     >
                                         No trouble report records available.

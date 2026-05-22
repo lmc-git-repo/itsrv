@@ -55,7 +55,7 @@ export default function Index({ records = [] }) {
         <AuthenticatedLayout
             header={<h2 className="text-lg font-semibold">Transfer Slip</h2>}
         >
-            <Head title="Transfer Slip 1" />
+            <Head title="Transfer Slip" />
             <div
                 className="tr-wrapper records-page"
                 style={{ marginTop: "0" }}
