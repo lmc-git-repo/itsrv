@@ -104,10 +104,10 @@ export default function TroubleReportIndex({ reports = [] }) {
                         <colgroup>
                             <col style={{ width: "9%" }} />
                             <col style={{ width: "6%" }} />
-                            <col style={{ width: "9%" }} />
-                            <col style={{ width: "6%" }} />
-                            <col style={{ width: "9%" }} />
                             <col style={{ width: "10%" }} />
+                            <col style={{ width: "6%" }} />
+                            <col style={{ width: "8%" }} />
+                            <col style={{ width: "9%" }} />
                             <col style={{ width: "9%" }} />
                             {isSuperAdmin && <col style={{ width: "8%" }} />}
                         </colgroup>
