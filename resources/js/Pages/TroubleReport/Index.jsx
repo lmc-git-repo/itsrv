@@ -103,12 +103,12 @@ export default function TroubleReportIndex({ reports = [] }) {
                     >
                         <colgroup>
                             <col style={{ width: "9%" }} />
+                            <col style={{ width: "5%" }} />
+                            <col style={{ width: "9%" }} />
                             <col style={{ width: "6%" }} />
-                            <col style={{ width: "10%" }} />
                             <col style={{ width: "6%" }} />
+                            <col style={{ width: "9%" }} />
                             <col style={{ width: "8%" }} />
-                            <col style={{ width: "9%" }} />
-                            <col style={{ width: "9%" }} />
                             {isSuperAdmin && <col style={{ width: "8%" }} />}
                         </colgroup>
 
@@ -141,7 +141,7 @@ export default function TroubleReportIndex({ reports = [] }) {
                                         <td className="whitespace-normal break-words text-left">{r.tr_no}</td>
                                         <td className="whitespace-normal break-words text-left">{r.computer_no}</td>
                                         <td className="whitespace-normal break-words text-left">{r.work_group}</td>
-                                        <td className="whitespace-normal break-words text-left">{r.username}</td>
+                                        <td className="whitespace-normal break-words text-left align-middle">{r.username}</td>
                                         <td className="whitespace-normal break-words text-left">{r.computer_type}</td>
                                         <td className="whitespace-normal break-words text-left">{r.problem_report}</td>
                                         <td className="whitespace-normal break-words text-left">{r.created_by}</td>
