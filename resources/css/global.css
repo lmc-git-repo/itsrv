@@ -792,7 +792,6 @@ canvas {
     min-width: 200px;                
 }
 
-/* ADD BUTTON */
 .tickets-add-btn {
     background-color: #22c55e;
     color: #ffffff;
@@ -827,7 +826,6 @@ canvas {
     min-width: 1250px;
 }
 
-/* HEADER */
 .tickets-table thead th {
     background-color: #f8fafc;
     font-size: 13px;              
@@ -840,7 +838,6 @@ canvas {
     white-space: nowrap;
 }
 
-/* BODY */
 .tickets-table tbody td {
     font-size: 14px;               
     font-weight: 500;
@@ -850,7 +847,6 @@ canvas {
     vertical-align: middle;
 }
 
-/* ROW HOVER */
 .tickets-table tbody tr:hover {
     background-color: #f1f5f9;
 }
@@ -1302,16 +1298,17 @@ nav .absolute button:hover {
 
 .ittools-grid-expanded {
     display: grid !important;
-    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
     gap: 20px !important;
 }
 
 .ittools-tile-large {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 28px 16px;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 20px !important;
+    gap: 10px !important;
     border-radius: 14px;
     background: rgba(255,255,255,0.05);
     backdrop-filter: blur(6px);
@@ -1321,57 +1318,22 @@ nav .absolute button:hover {
 }
 
 .ittools-tile-large:hover {
-    transform: translateY(-6px) scale(1.04);
+    transform: translateY(-6px) scale(1.04) !important;
     background: rgba(255,255,255,0.12);
 }
 
 .ittools-icon-large {
-    width: 60px;
-    height: 60px;
-    margin-bottom: 12px;
+    width: 60px !important;
+    height: 60px !important;
+    margin-bottom: 12px !important;
     object-fit: contain;
 }
 
 .ittools-name-large {
-    font-size: 15px;
-    font-weight: 600;
-    text-align: center;
-    color: #ffffff;
-}
-
-.ittools-grid-expanded {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
-    gap: 20px !important;
-}
-
-.ittools-tile-large {
-    flex-direction: column !important;
-    justify-content: center !important;
-    align-items: center !important;
-    padding: 20px !important;
-    gap: 10px !important;
-}
-
-.ittools-icon-large {
-    margin-bottom: 12px !important;
-    width: 60px !important;
-    height: 60px !important;
-}
-
-.ittools-name-large {
-    text-align: center !important;
     font-size: 15px !important;
-}
-
-.ittools-tile-large:hover {
-    transform: translateY(-6px) scale(1.04) !important;
-}
-
-@media (max-width: 1400px) {
-    .ittools-grid-expanded {
-        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-    }
+    font-weight: 600;
+    text-align: center !important;
+    color: #ffffff;
 }
 
 @media (max-width: 1200px) {
