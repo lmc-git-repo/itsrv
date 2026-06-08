@@ -1,7 +1,7 @@
 import { Head, router, useForm } from "@inertiajs/react";
 import { useEffect, useState } from "react";
 
-export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "" }) {
+export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "", submitted_ticket_no = "" }) {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [editTicket, setEditTicket] = useState(null);
     const [monitorTrackingCode, setMonitorTrackingCode] = useState("");
@@ -47,15 +47,8 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "" 
     ];
 
     useEffect(() => {
-        const savedTrackingCode = localStorage.getItem("employee_tracking_code");
-
-        if (tracking_code) {
-            localStorage.setItem("employee_tracking_code", tracking_code);
-            setMonitorTrackingCode(tracking_code);
-        } else if (savedTrackingCode) {
-            setMonitorTrackingCode(savedTrackingCode);
-        }
-    }, [tracking_code]);
+    setMonitorTrackingCode(tracking_code || "");
+}, [tracking_code]);
 
     useEffect(() => {
         if (editTicket) {
@@ -70,13 +63,26 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "" 
     }, [editTicket]);
 
     const submit = (e) => {
-        e.preventDefault();
+    e.preventDefault();
 
-        post(route("employee.tickets.store"), {
-            preserveScroll: true,
-            onSuccess: () => reset(),
-        });
-    };
+    post(route("employee.tickets.store"), {
+        preserveScroll: true,
+        onSuccess: () => {
+            reset();
+            setMonitorTrackingCode("");
+            localStorage.removeItem("employee_tracking_code");
+
+            router.get(
+                route("employee.tickets"),
+                {},
+                {
+                    preserveScroll: true,
+                    preserveState: false,
+                }
+            );
+        },
+    });
+};
 
     const checkTicketStatus = (e) => {
         e.preventDefault();
@@ -114,9 +120,7 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "" 
         }
     };
 
-    const visibleTickets = tracking_code
-        ? tickets
-        : tickets.filter((ticket) => ticket.status === "Open" || ticket.status === "Ongoing");
+    const visibleTickets = tickets;
 
     return (
         <>
@@ -139,9 +143,9 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "" 
                             </div>
                         </div>
 
-                        {tracking_code && (
+                        {submitted_ticket_no && (
                             <div className="employee-ticket-alert">
-                                Your ticket was submitted successfully. Tracking Code: <strong>{tracking_code}</strong>
+                                Your ticket was submitted successfully. Tracking Code: <strong>{submitted_ticket_no}</strong>
                             </div>
                         )}
 
@@ -207,24 +211,34 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "" 
                     <section className="employee-ticket-monitor-card">
                         <div className="employee-ticket-monitor-header">
                             <h2>Ticket Monitoring Table</h2>
-                            <p>Enter your tracking code to check your ticket status. Refresh this page to see latest updates.</p>
+                            <p>Enter your ticket number or employee name to check ticket history. Refresh this page to see latest updates.</p>
                         </div>
 
                         <form onSubmit={checkTicketStatus} className="employee-ticket-monitor-form">
-                        <div>
-                            <label>Tracking Code</label>
-                            <input
-                                type="text"
-                                value={monitorTrackingCode}
-                                onChange={(e) => setMonitorTrackingCode(e.target.value.toUpperCase())}
-                                placeholder="Enter your tracking code"
-                            />
-                        </div>
+                            <div>
+                                <label>Ticket No. / Employee Name</label>
+                                <input
+                                    type="text"
+                                    value={monitorTrackingCode}
+                                    onChange={(e) => {
+                                        const value = e.target.value.toUpperCase();
+                                        setMonitorTrackingCode(value);
+                                        
+                                        if (!value.trim()) {
+                                            router.get(route("employee.tickets"), {}, {
+                                                preserveScroll: true,
+                                                preserveState: false,
+                                            });
+                                        }
+                                    }}
+                                    placeholder="Enter ticket # or employee name"
+                                />
+                            </div>
 
-                        <button type="submit">
-                            Check Status
-                        </button>
-                    </form>
+                            <button type="submit">
+                                Check Status
+                            </button>
+                        </form>
 
                         <div className="employee-ticket-list">
                             {visibleTickets.length === 0 && (
@@ -245,7 +259,7 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "" 
                                     <p>{ticket.problem_description}</p>
 
                                     <small>
-                                        Department: {ticket.department || "—"}
+                                        Employee: {ticket.employee_name || "—"} | Department: {ticket.department || "—"}
                                     </small>
 
                                     <div className="employee-ticket-actions">

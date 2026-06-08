@@ -57,23 +57,26 @@ class TicketController extends Controller
 
     public function employeeIndex(Request $request)
     {
-        $tickets = collect();
+        $ticketsQuery = Ticket::whereNull('created_by');
 
         if ($request->tracking_code) {
-            $trackingCode = strtoupper(trim($request->tracking_code));
+            $searchKeyword = strtoupper(trim($request->tracking_code));
 
-            $tickets = Ticket::whereNull('created_by')
-                ->where(function ($query) use ($trackingCode) {
-                    $query->where('tracking_code', $trackingCode)
-                        ->orWhere('ticket_no', $trackingCode);
-                })
-                ->latest()
-                ->get();
+            $ticketsQuery->where(function ($query) use ($searchKeyword) {
+                $query->where('tracking_code', 'like', "%{$searchKeyword}%")
+                    ->orWhere('ticket_no', 'like', "%{$searchKeyword}%")
+                    ->orWhere('employee_name', 'like', "%{$searchKeyword}%");
+            });
         }
+
+        $tickets = $ticketsQuery
+            ->latest()
+            ->get();
 
         return Inertia::render('EmployeeTickets/Index', [
             'tickets' => $tickets,
             'tracking_code' => $request->tracking_code,
+            'submitted_ticket_no' => session('submitted_ticket_no'),
         ]);
     }
 
@@ -103,9 +106,7 @@ class TicketController extends Controller
             'tracking_code' => $ticketNo,
         ]);
 
-        return redirect()->route('employee.tickets', [
-            'tracking_code' => $ticketNo,
-        ]);
+        return redirect()->route('employee.tickets')->with('submitted_ticket_no', $ticketNo);
     }
 
     public function employeeEdit(Request $request, Ticket $ticket)
