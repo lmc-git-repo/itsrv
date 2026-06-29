@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->string('employee_name');
             $table->string('department');
             $table->string('category');
+            $table->string('employee_category')->nullable();
             $table->text('problem_description');
             $table->date('date_opened');
             $table->text('problem_solution')->nullable();

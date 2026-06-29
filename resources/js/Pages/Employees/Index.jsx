@@ -1,45 +1,52 @@
 import { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
-import CreateUser from "./Create";
-import EditUser from "./Edit";
+import CreateEmployee from "./Create";
+import EditEmployee from "./Edit";
+import ShowEmployee from "./Show";
 
-export default function UsersIndex({ users }) {
+export default function EmployeesIndex({ employees = [] }) {
     const [search, setSearch] = useState("");
     const [showCreate, setShowCreate] = useState(false);
-    const [editUser, setEditUser] = useState(null);
-    const [deleteUser, setDeleteUser] = useState(null);
+    const [editEmployee, setEditEmployee] = useState(null);
+    const [showEmployee, setShowEmployee] = useState(null);
+    const [deleteEmployee, setDeleteEmployee] = useState(null);
 
-    const filtered = users.filter(
-        (u) =>
-            u.name.toLowerCase().includes(search.toLowerCase()) ||
-            u.email.toLowerCase().includes(search.toLowerCase())
+    const employeeData = Array.isArray(employees)
+        ? employees
+        : employees?.data ?? [];
+
+    const filtered = employeeData.filter(
+        (employee) =>
+            employee.name?.toLowerCase().includes(search.toLowerCase()) ||
+            employee.department?.toLowerCase().includes(search.toLowerCase()) ||
+            employee.status?.toLowerCase().includes(search.toLowerCase())
     );
 
     const handleDelete = () => {
-        if (!deleteUser) return;
+        if (!deleteEmployee) return;
 
         window.axios
-            .post(`/users/${deleteUser.id}`, {
+            .post(`/employees/${deleteEmployee.id}`, {
                 _method: "delete",
             })
             .then(() => {
-                setDeleteUser(null);
+                setDeleteEmployee(null);
                 location.reload();
             });
     };
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="text-lg font-semibold">Users</h2>}
+            header={<h2 className="text-lg font-semibold">Employees</h2>}
         >
-            <Head title="Users" />
+            <Head title="Employees" />
 
             <div className="users-wrapper shadow-its records-page">
                 <div className="users-toolbar">
                     <div className="users-search">
                         <input
-                            placeholder="Search user..."
+                            placeholder="Search employee..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
@@ -59,23 +66,37 @@ export default function UsersIndex({ users }) {
                             <tr>
                                 <th>ID</th>
                                 <th>Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Date Created</th>
+                                <th>Department</th>
+                                <th>Status</th>
+                                <th>Created By</th>
+                                <th>Created Date</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
+
                         <tbody>
-                            {filtered.map((u) => (
-                                <tr key={u.id}>
-                                    <td>{u.id}</td>
-                                    <td>{u.name}</td>
-                                    <td>{u.email}</td>
-                                    <td>{u.role}</td>
-                                    <td>{u.created_at}</td>
-                                    <td className="users-actions">
-                                        <span onClick={() => setEditUser(u)}>✏️</span>
-                                        <span onClick={() => setDeleteUser(u)}>🗑️</span>
+                            {filtered.map((employee) => (
+                                <tr
+                                    key={employee.id}
+                                    className="cursor-pointer"
+                                    onClick={() => setShowEmployee(employee)}
+                                >
+                                    <td>{employee.id}</td>
+                                    <td>{employee.name}</td>
+                                    <td>{employee.department}</td>
+                                    <td>{employee.status}</td>
+                                    <td>{employee.creator?.name || "—"}</td>
+                                    <td>
+                                        {employee.created_at
+                                            ? new Date(employee.created_at).toLocaleDateString("en-CA")
+                                            : "—"}
+                                    </td>
+                                    <td
+                                        className="users-actions"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <span onClick={() => setEditEmployee(employee)}>✏️</span>
+                                        <span onClick={() => setDeleteEmployee(employee)}>🗑️</span>
                                     </td>
                                 </tr>
                             ))}
@@ -84,12 +105,25 @@ export default function UsersIndex({ users }) {
                 </div>
             </div>
 
-            {showCreate && <CreateUser onClose={() => setShowCreate(false)} />}
-            {editUser && (
-                <EditUser user={editUser} onClose={() => setEditUser(null)} />
+            {showCreate && (
+                <CreateEmployee onClose={() => setShowCreate(false)} />
             )}
 
-            {deleteUser && (
+            {editEmployee && (
+                <EditEmployee
+                    employee={editEmployee}
+                    onClose={() => setEditEmployee(null)}
+                />
+            )}
+
+            {showEmployee && (
+                <ShowEmployee
+                    employee={showEmployee}
+                    onClose={() => setShowEmployee(null)}
+                />
+            )}
+
+            {deleteEmployee && (
                 <div
                     className="users-modal"
                     style={{
@@ -101,7 +135,7 @@ export default function UsersIndex({ users }) {
                         justifyContent: "center",
                         zIndex: 9999,
                     }}
-                    onClick={() => setDeleteUser(null)}
+                    onClick={() => setDeleteEmployee(null)}
                 >
                     <div
                         onClick={(e) => e.stopPropagation()}
@@ -123,11 +157,11 @@ export default function UsersIndex({ users }) {
                                 letterSpacing: "0.6px",
                             }}
                         >
-                            DELETE USER
+                            DELETE EMPLOYEE
                         </h3>
 
                         <p style={{ marginBottom: "24px", color: "#374151" }}>
-                            Are you sure you want to permanently delete this existing user?
+                            Are you sure you want to permanently delete this employee?
                         </p>
 
                         <div
@@ -139,7 +173,7 @@ export default function UsersIndex({ users }) {
                         >
                             <button
                                 type="button"
-                                onClick={() => setDeleteUser(null)}
+                                onClick={() => setDeleteEmployee(null)}
                                 style={{
                                     background: "#6b7280",
                                     color: "#fff",

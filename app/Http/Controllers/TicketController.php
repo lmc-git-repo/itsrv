@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Ticket;
 use App\Models\User;
+use App\Models\Employee;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -77,22 +79,34 @@ class TicketController extends Controller
             'tickets' => $tickets,
             'tracking_code' => $request->tracking_code,
             'submitted_ticket_no' => session('submitted_ticket_no'),
+            'activeEmployees' => Employee::where('status', 'Employed')
+                ->select('id', 'name', 'department')
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 
     public function employeeStore(Request $request)
     {
         $request->validate([
-            'employee_name' => 'required|string',
+            'employee_name' => [
+                'required',
+                'string',
+                Rule::exists('employees', 'name')->where('status', 'Employed'),
+            ],
             'department' => 'required|string',
             'category' => 'required|string',
             'problem_description' => 'required|string',
         ]);
-        
+
+        $employeeCategory = $request->category;
+        $itCategory = $this->mapEmployeeCategoryToITCategory($employeeCategory);
+
         $ticket = Ticket::create([
             'employee_name' => $request->employee_name,
             'department' => $request->department,
-            'category' => $request->category,
+            'employee_category' => $employeeCategory,
+            'category' => $itCategory,
             'problem_description' => $request->problem_description,
             'status' => 'Open',
             'date_opened' => now(),
@@ -136,17 +150,25 @@ class TicketController extends Controller
         );
 
         $request->validate([
-            'employee_name' => 'required|string',
+            'employee_name' => [
+                'required',
+                'string',
+                Rule::exists('employees', 'name')->where('status', 'Employed'),
+            ],
             'department' => 'required|string',
             'category' => 'required|string',
             'problem_description' => 'required|string',
             'tracking_code' => 'required|string',
         ]);
 
+        $employeeCategory = $request->category;
+        $itCategory = $this->mapEmployeeCategoryToITCategory($employeeCategory);
+
         $ticket->update([
             'employee_name' => $request->employee_name,
             'department' => $request->department,
-            'category' => $request->category,
+            'employee_category' => $employeeCategory,
+            'category' => $itCategory,
             'problem_description' => $request->problem_description,
         ]);
 
@@ -178,6 +200,7 @@ class TicketController extends Controller
             'employee_name' => $request->employee_name,
             'department' => $request->department,
             'category' => $request->category,
+            'employee_category' => null,
             'problem_description' => $request->problem_description,
             'status' => $request->status,
             'date_opened' => $request->date_opened,
@@ -271,5 +294,18 @@ class TicketController extends Controller
         ]);
 
         return redirect()->route('tickets.index')->with('success', 'Ticket updated successfully.');
+    }
+
+    private function mapEmployeeCategoryToITCategory($employeeCategory)
+    {
+        return [
+            'Hardware' => 'Hardware Support & Device Setup',
+            'Software / Application' => 'Application & System Support',
+            'Account / Login' => 'Account & Access Management',
+            'File / Folder Access' => 'File, Data & Document Management',
+            'Network / Internet' => 'Network & Connectivity Support',
+            'CCTV / Security' => 'Security & Permissions',
+            'Others' => 'Others',
+        ][$employeeCategory] ?? 'Others';
     }
 }

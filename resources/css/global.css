@@ -599,6 +599,35 @@ p, span, label, div {
     font-size: 14px;
 }
 
+.employee-ticket-validation-message {
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #fecaca;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.employees-status-employed {
+    background-color: #dcfce7;
+    color: #15803d;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.employees-status-resigned {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
 .employee-ticket-footer {
     max-width: 1600px;
     margin: 24px auto 0;

@@ -88,6 +88,15 @@ export default function AuthenticatedLayout({ header, children }) {
                                         Users
                                     </Link>
                                 )}
+
+                                {isSuperAdmin && (
+                                    <Link
+                                        href={route('employees.index')}
+                                        className="hover:text-blue-400"
+                                    >
+                                        Employees
+                                    </Link>
+                                )}
                             </div>
 
                             {/* USER DROPDOWN */}

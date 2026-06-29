@@ -13,6 +13,7 @@ class Ticket extends Model
         'employee_name',
         'department',
         'category',
+        'employee_category',
         'problem_description',
         'problem_solution',
         'progress_update',

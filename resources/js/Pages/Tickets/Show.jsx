@@ -41,15 +41,16 @@ export default function Show({ show, ticket, onClose }) {
                 </h2>
 
                 <div className="space-y-3 text-base text-[#101E33]">
-                    <p><strong>Ticket No:</strong> {ticket.ticket_no}</p>
+                    <p><strong>Ticket No:</strong> {ticket.ticket_no || "—"}</p>
                     <p><strong>Employee Name:</strong> {ticket.employee_name}</p>
                     <p><strong>Department:</strong> {ticket.department}</p>
+                    {/* <p><strong>Category:</strong> {ticket.employee_category || ticket.category}</p> */}
                     <p><strong>Category:</strong> {ticket.category}</p>
                     <p><strong>Status:</strong> {ticket.status}</p>
                     <p><strong>Date Opened:</strong> {ticket.date_opened}</p>
                     <p><strong>Resolved At:</strong> {ticket.resolved_at || "—"}</p>
 
-                    <p><strong>Created By:</strong> {ticket.creator?.name}</p>
+                    <p><strong>Created By:</strong> {ticket.creator?.name || "Employee"}</p>
                     <p><strong>Resolved By:</strong> {ticket.resolver?.name || "—"}</p>
 
                     <div>
@@ -57,7 +58,7 @@ export default function Show({ show, ticket, onClose }) {
                         <textarea
                             readOnly
                             className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base"
-                            value={ticket.problem_description}
+                            value={ticket.problem_description || ""}
                         />
                     </div>
 

@@ -1,7 +1,7 @@
 import { Head, router, useForm } from "@inertiajs/react";
 import { useEffect, useState } from "react";
 
-export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "", submitted_ticket_no = "" }) {
+export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "", submitted_ticket_no = "", activeEmployees = [] }) {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [editTicket, setEditTicket] = useState(null);
     const [monitorTrackingCode, setMonitorTrackingCode] = useState("");
@@ -35,14 +35,12 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
     ];
 
     const categories = [
-        "Application & System Support",
-        "Hardware Support & Device Setup",
-        "Account & Access Management",
-        "File, Data & Document Management",
-        "Network & Connectivity Support",
-        "IT Operations & Maintenance",
-        "Asset & Equipment Handling",
-        "Security & Permissions",
+        "Hardware",
+        "Software / Application",
+        "Account / Login",
+        "File / Folder Access",
+        "Network / Internet",
+        "CCTV / Security",
         "Others",
     ];
 
@@ -55,7 +53,7 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
             setEditData({
                 employee_name: editTicket.employee_name || "",
                 department: editTicket.department || "",
-                category: editTicket.category || "",
+                category: editTicket.employee_category || editTicket.category || "",
                 problem_description: editTicket.problem_description || "",
                 tracking_code: tracking_code || editTicket.tracking_code || monitorTrackingCode || "",
             });
@@ -152,12 +150,34 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                         <form onSubmit={submit} className="employee-ticket-form">
                             <div>
                                 <label>Employee Name</label>
-                                <input
-                                    type="text"
+                                <select
                                     value={data.employee_name}
-                                    onChange={(e) => setData("employee_name", e.target.value)}
+                                    onChange={(e) => {
+                                        const selectedEmployee = activeEmployees.find(
+                                            (employee) => employee.name === e.target.value
+                                        );
+
+                                        setData({
+                                            ...data,
+                                            employee_name: e.target.value,
+                                            department: selectedEmployee?.department || "",
+                                        });
+                                    }}
                                     required
-                                />
+                                >
+                                    <option value="">Select Employee Name</option>
+                                    {activeEmployees.map((employee) => (
+                                        <option key={employee.id} value={employee.name}>
+                                            {employee.name}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                {activeEmployees.length === 0 && (
+                                    <div className="employee-ticket-validation-message">
+                                        You cannot submit a ticket because there are no active employees registered. Please contact IT Department for assistance.
+                                    </div>
+                                )}
                             </div>
 
                             <div>
@@ -202,7 +222,7 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                 />
                             </div>
 
-                            <button type="submit" disabled={processing}>
+                            <button type="submit" disabled={processing || !data.employee_name}>
                                 Submit Ticket
                             </button>
                         </form>
