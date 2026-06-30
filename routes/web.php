@@ -61,6 +61,9 @@ Route::middleware(['auth','role:superadmin,admin'])->group(function () {
 
 Route::middleware(['auth','role:superadmin'])->group(function () {
 
+    Route::get('/tickets/latest/employee', [TicketController::class, 'latestEmployeeTicket'])
+        ->name('tickets.latest.employee');
+
     Route::post('/tickets', [TicketController::class, 'store'])
         ->name('tickets.store');
 

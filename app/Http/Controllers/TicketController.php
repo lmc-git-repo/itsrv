@@ -57,6 +57,16 @@ class TicketController extends Controller
         ]);
     }
 
+    public function latestEmployeeTicket()
+    {
+        $ticket = Ticket::whereNull('created_by')
+            ->latest()
+            ->select('id', 'ticket_no', 'employee_name', 'department', 'created_at')
+            ->first();
+
+        return response()->json($ticket);
+    }
+
     public function employeeIndex(Request $request)
     {
         $ticketsQuery = Ticket::whereNull('created_by');
