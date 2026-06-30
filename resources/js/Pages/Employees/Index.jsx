@@ -1,9 +1,10 @@
 import { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import CreateEmployee from "./Create";
 import EditEmployee from "./Edit";
 import ShowEmployee from "./Show";
+import Pagination from "@/Components/Pagination";
 
 export default function EmployeesIndex({ employees = [] }) {
     const [search, setSearch] = useState("");
@@ -16,12 +17,21 @@ export default function EmployeesIndex({ employees = [] }) {
         ? employees
         : employees?.data ?? [];
 
-    const filtered = employeeData.filter(
-        (employee) =>
-            employee.name?.toLowerCase().includes(search.toLowerCase()) ||
-            employee.department?.toLowerCase().includes(search.toLowerCase()) ||
-            employee.status?.toLowerCase().includes(search.toLowerCase())
-    );
+    const employeeLinks = employees?.links ?? [];
+
+    const handleSearch = (value) => {
+        setSearch(value);
+
+        router.get(
+            route("employees.index"),
+            { search: value },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                replace: true,
+            }
+        );
+    };
 
     const handleDelete = () => {
         if (!deleteEmployee) return;
@@ -48,7 +58,7 @@ export default function EmployeesIndex({ employees = [] }) {
                         <input
                             placeholder="Search employee..."
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            onChange={(e) => handleSearch(e.target.value)}
                         />
                     </div>
 
@@ -75,7 +85,7 @@ export default function EmployeesIndex({ employees = [] }) {
                         </thead>
 
                         <tbody>
-                            {filtered.map((employee) => (
+                            {employeeData.map((employee) => (
                                 <tr
                                     key={employee.id}
                                     className="cursor-pointer"
@@ -102,6 +112,11 @@ export default function EmployeesIndex({ employees = [] }) {
                             ))}
                         </tbody>
                     </table>
+
+                    <Pagination
+                        links={employeeLinks}
+                        queryParams={{ search }}
+                    />
                 </div>
             </div>
 

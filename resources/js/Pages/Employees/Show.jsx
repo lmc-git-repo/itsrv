@@ -1,6 +1,12 @@
 export default function ShowEmployee({ employee, onClose }) {
     if (!employee) return null;
 
+    const formatDate = (date) => {
+        if (!date) return "—";
+
+        return new Date(date).toLocaleDateString("en-CA");
+    };
+
     return (
         <div
             className="users-modal"
@@ -64,7 +70,7 @@ export default function ShowEmployee({ employee, onClose }) {
                     <p><strong>Dept:</strong> {employee.department}</p>
                     <p><strong>Status:</strong> {employee.status}</p>
                     <p><strong>Created By:</strong> {employee.creator?.name || "—"}</p>
-                    <p><strong>Created Date:</strong> {employee.created_at}</p>
+                    <p><strong>Created Date:</strong> {formatDate(employee.created_at)}</p>
                 </div>
             </div>
         </div>
