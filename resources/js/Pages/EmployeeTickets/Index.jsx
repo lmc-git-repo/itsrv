@@ -268,19 +268,8 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                             <div>
                                 <label>Problem Description</label>
 
-                                <textarea
-                                    rows="6"
-                                    value={data.problem_description}
-                                    onFocus={() => setShowProblemSuggestions(true)}
-                                    onChange={(e) => {
-                                        setData("problem_description", e.target.value);
-                                        setShowProblemSuggestions(false);
-                                    }}
-                                    required
-                                />
-
                                 {showProblemSuggestions && data.category && TicketSuggestions.employee[data.category]?.length > 0 && (
-                                    <div className="mt-2 space-y-2">
+                                    <div className="mt-2 mb-3 space-y-2">
                                         {TicketSuggestions.employee[data.category].map((suggestion) => (
                                             <button
                                                 key={suggestion}
@@ -297,6 +286,17 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                         ))}
                                     </div>
                                 )}
+
+                                <textarea
+                                    rows="6"
+                                    value={data.problem_description}
+                                    onFocus={() => setShowProblemSuggestions(true)}
+                                    onChange={(e) => {
+                                        setData("problem_description", e.target.value);
+                                        setShowProblemSuggestions(false);
+                                    }}
+                                    required
+                                />
                             </div>
 
                             <div>
@@ -324,7 +324,7 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
 
                         <form onSubmit={checkTicketStatus} className="employee-ticket-monitor-form">
                             <div>
-                                <label>Ticket No. / Employee Name</label>
+                                <label>Check Ticket Status</label>
                                 <input
                                     type="text"
                                     value={monitorTrackingCode}
@@ -567,20 +567,8 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                     Problem Description
                                 </label>
 
-                                <textarea
-                                    rows="5"
-                                    className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
-                                    value={editData.problem_description}
-                                    onFocus={() => setShowEditProblemSuggestions(true)}
-                                    onChange={(e) => {
-                                        setEditData("problem_description", e.target.value);
-                                        setShowEditProblemSuggestions(false);
-                                    }}
-                                    required
-                                />
-
                                 {showEditProblemSuggestions && editData.category && TicketSuggestions.employee[editData.category]?.length > 0 && (
-                                    <div className="mt-2 space-y-2">
+                                    <div className="mt-2 mb-3 space-y-2">
                                         {TicketSuggestions.employee[editData.category].map((suggestion) => (
                                             <button
                                                 key={suggestion}
@@ -597,6 +585,18 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                         ))}
                                     </div>
                                 )}
+
+                                <textarea
+                                    rows="5"
+                                    className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
+                                    value={editData.problem_description}
+                                    onFocus={() => setShowEditProblemSuggestions(true)}
+                                    onChange={(e) => {
+                                        setEditData("problem_description", e.target.value);
+                                        setShowEditProblemSuggestions(false);
+                                    }}
+                                    required
+                                />
                             </div>
 
                             <div className="flex justify-center gap-4 pt-4">

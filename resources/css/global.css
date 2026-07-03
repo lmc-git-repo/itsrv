@@ -396,6 +396,10 @@ p, span, label, div {
 .employee-ticket-monitor-card {
     background: #ffffff;
     color: #101E33;
+    max-height: 900px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .employee-ticket-monitor-header {
@@ -414,7 +418,8 @@ p, span, label, div {
     display: flex;
     flex-direction: column;
     gap: 14px;
-    max-height: 72vh;
+    flex: 1;
+    max-height: 620px;
     overflow-y: auto;
     padding-right: 6px;
 }
