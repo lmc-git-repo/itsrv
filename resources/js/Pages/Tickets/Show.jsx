@@ -18,7 +18,8 @@ export default function Show({ show, ticket, onClose }) {
         if (!description) {
             return {
                 problemDescription: "",
-                remarks: "No remarks provided.",
+                remarks: "",
+                hasRemarks: false,
             };
         }
 
@@ -28,17 +29,20 @@ export default function Show({ show, ticket, onClose }) {
         if (markerIndex === -1) {
             return {
                 problemDescription: description,
-                remarks: "No remarks provided.",
+                remarks: "",
+                hasRemarks: false,
             };
         }
 
         return {
             problemDescription: description.substring(0, markerIndex).trim(),
-            remarks: description.substring(markerIndex + marker.length).trim() || "No remarks provided.",
+            remarks: description.substring(markerIndex + marker.length).trim(),
+            hasRemarks: true,
         };
     };
 
     const ticketDetails = splitProblemDescription(ticket?.problem_description);
+    const isEmployeeCreatedTicket = !ticket?.creator?.name;
 
     useEffect(() => {
         const handleEsc = (e) => {
@@ -99,14 +103,16 @@ export default function Show({ show, ticket, onClose }) {
                         />
                     </div>
 
-                    <div>
-                        <strong>Remarks:</strong>
-                        <textarea
-                            readOnly
-                            className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base"
-                            value={ticketDetails.remarks}
-                        />
-                    </div>
+                    {isEmployeeCreatedTicket && ticketDetails.hasRemarks && (
+                        <div>
+                            <strong>Remarks:</strong>
+                            <textarea
+                                readOnly
+                                className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base"
+                                value={ticketDetails.remarks}
+                            />
+                        </div>
+                    )}
 
                     <div>
                         <strong>Progress Update:</strong>

@@ -26,7 +26,6 @@ export default function EditTicketModal({ show, ticket, onClose }) {
         if (!description) {
             return {
                 problemDescription: "",
-                remarks: "",
             };
         }
 
@@ -36,13 +35,11 @@ export default function EditTicketModal({ show, ticket, onClose }) {
         if (markerIndex === -1) {
             return {
                 problemDescription: description,
-                remarks: "",
             };
         }
 
         return {
             problemDescription: description.substring(0, markerIndex).trim(),
-            remarks: description.substring(markerIndex + marker.length).trim(),
         };
     };
 
@@ -56,7 +53,6 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             department: ticket.department || "",
             category: ticket.category || "",
             problem_description: ticketDetails.problemDescription || "",
-            remarks: ticketDetails.remarks || "",
             status: ticket.status || "",
             problem_solution: ticket.problem_solution || "",
             progress_update: ticket.progress_update || "",
@@ -72,7 +68,6 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             department: "",
             category: "",
             problem_description: "",
-            remarks: "",
             status: "",
             problem_solution: "",
             progress_update: "",
@@ -115,9 +110,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
 
         transform((data) => ({
             ...data,
-            problem_description: data.remarks.trim()
-                ? `${data.problem_description}\n\nRemarks: ${data.remarks}`
-                : data.problem_description,
+            problem_description: data.problem_description,
         }));
 
         put(route("tickets.update", ticket.id), {
@@ -237,20 +230,6 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                                 ))}
                             </div>
                         )}
-                    </div>
-
-                    <div>
-                        <label>Remarks</label>
-                        <textarea
-                            rows="3"
-                            className="w-full rounded border px-3 py-2"
-                            value={data.remarks}
-                            onFocus={() => setShowProblemSuggestions(false)}
-                            onChange={(e) =>
-                                setData("remarks", e.target.value)
-                            }
-                            placeholder="Add more details if needed..."
-                        />
                     </div>
 
                     <div>
