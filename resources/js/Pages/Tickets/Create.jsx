@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useForm } from "@inertiajs/react";
 import TicketSuggestions from "@/Constants/TicketSuggestions";
 
 export default function CreateTicketModal({ show, onClose }) {
+    const [showProblemSuggestions, setShowProblemSuggestions] = useState(false);
 
     const { data, setData, post, processing, reset } = useForm({
         employee_name: "",
@@ -39,6 +41,7 @@ export default function CreateTicketModal({ show, onClose }) {
             preserveScroll: true,
             onSuccess: () => {
                 reset();
+                setShowProblemSuggestions(false);
                 onClose();
             },
         });
@@ -72,6 +75,7 @@ export default function CreateTicketModal({ show, onClose }) {
                             required
                             className="w-full rounded border px-3 py-2"
                             value={data.employee_name}
+                            onFocus={() => setShowProblemSuggestions(false)}
                             onChange={e => setData("employee_name", e.target.value)}
                         />
                     </div>
@@ -82,6 +86,7 @@ export default function CreateTicketModal({ show, onClose }) {
                             required
                             className="w-full rounded border px-3 py-2"
                             value={data.department}
+                            onFocus={() => setShowProblemSuggestions(false)}
                             onChange={e => setData("department", e.target.value)}
                         >
                             <option value="">Select Department</option>
@@ -97,7 +102,11 @@ export default function CreateTicketModal({ show, onClose }) {
                             required
                             className="w-full rounded border px-3 py-2"
                             value={data.category}
-                            onChange={e => setData("category", e.target.value)}
+                            onFocus={() => setShowProblemSuggestions(false)}
+                            onChange={e => {
+                                setData("category", e.target.value);
+                                setShowProblemSuggestions(false);
+                            }}
                         >
                             <option value="">Select Category</option>
                             {categories.map(c => (
@@ -113,6 +122,7 @@ export default function CreateTicketModal({ show, onClose }) {
                             required
                             className="w-full rounded border px-3 py-2"
                             value={data.date_opened}
+                            onFocus={() => setShowProblemSuggestions(false)}
                             onChange={e => setData("date_opened", e.target.value)}
                         />
                     </div>
@@ -124,23 +134,31 @@ export default function CreateTicketModal({ show, onClose }) {
                             rows="3"
                             className="w-full rounded border px-3 py-2"
                             value={data.problem_description}
-                            onChange={e => setData("problem_description", e.target.value)}
+                            onFocus={() => setShowProblemSuggestions(true)}
+                            onChange={e => {
+                                setData("problem_description", e.target.value);
+                                setShowProblemSuggestions(false);
+                            }}
                         />
 
-                        {data.category && TicketSuggestions.superadmin[data.category]?.length > 0 && (
-                        <div className="mt-2 space-y-2">
-                            {TicketSuggestions.superadmin[data.category].map((suggestion) => (
-                                <button
-                                    key={suggestion}
-                                    type="button"
-                                    className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
-                                    onClick={() => setData("problem_description", suggestion)}
-                                >
-                                    {suggestion}
-                                </button>
-                            ))}
-                        </div>
-                    )}
+                        {showProblemSuggestions && data.category && TicketSuggestions.superadmin[data.category]?.length > 0 && (
+                            <div className="mt-2 space-y-2">
+                                {TicketSuggestions.superadmin[data.category].map((suggestion) => (
+                                    <button
+                                        key={suggestion}
+                                        type="button"
+                                        className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => {
+                                            setData("problem_description", suggestion);
+                                            setShowProblemSuggestions(false);
+                                        }}
+                                    >
+                                        {suggestion}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div>
@@ -149,6 +167,7 @@ export default function CreateTicketModal({ show, onClose }) {
                             required
                             className="w-full rounded border px-3 py-2"
                             value={data.status}
+                            onFocus={() => setShowProblemSuggestions(false)}
                             onChange={e => setData("status", e.target.value)}
                         >
                             {statuses.map(s => (

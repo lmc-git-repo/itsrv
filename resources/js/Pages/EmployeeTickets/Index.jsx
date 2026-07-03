@@ -6,6 +6,8 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [editTicket, setEditTicket] = useState(null);
     const [monitorTrackingCode, setMonitorTrackingCode] = useState("");
+    const [showProblemSuggestions, setShowProblemSuggestions] = useState(false);
+    const [showEditProblemSuggestions, setShowEditProblemSuggestions] = useState(false);
 
     const formatDateTime = (date) => {
         if (!date) return "—";
@@ -90,6 +92,7 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                 problem_description: editTicket.problem_description || "",
                 tracking_code: tracking_code || editTicket.tracking_code || monitorTrackingCode || "",
             });
+            setShowEditProblemSuggestions(false);
         }
     }, [editTicket]);
 
@@ -107,6 +110,7 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
             preserveScroll: true,
             onSuccess: () => {
                 reset();
+                setShowProblemSuggestions(false);
                 setMonitorTrackingCode("");
                 localStorage.removeItem("employee_tracking_code");
 
@@ -141,7 +145,10 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
 
         put(route("employee.tickets.update", editTicket.id), {
             preserveScroll: true,
-            onSuccess: () => setEditTicket(null),
+            onSuccess: () => {
+                setShowEditProblemSuggestions(false);
+                setEditTicket(null);
+            },
         });
     };
 
@@ -192,6 +199,7 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                 <label>Employee Name</label>
                                 <select
                                     value={data.employee_name}
+                                    onFocus={() => setShowProblemSuggestions(false)}
                                     onChange={(e) => {
                                         const selectedEmployee = activeEmployees.find(
                                             (employee) => employee.name === e.target.value
@@ -224,6 +232,7 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                 <label>Department</label>
                                 <select
                                     value={data.department}
+                                    onFocus={() => setShowProblemSuggestions(false)}
                                     onChange={(e) => setData("department", e.target.value)}
                                     required
                                 >
@@ -240,7 +249,11 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                 <label>Category</label>
                                 <select
                                     value={data.category}
-                                    onChange={(e) => setData("category", e.target.value)}
+                                    onFocus={() => setShowProblemSuggestions(false)}
+                                    onChange={(e) => {
+                                        setData("category", e.target.value);
+                                        setShowProblemSuggestions(false);
+                                    }}
                                     required
                                 >
                                     <option value="">Select Category</option>
@@ -255,27 +268,35 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                             <div>
                                 <label>Problem Description</label>
 
-                                {data.category && TicketSuggestions.employee[data.category]?.length > 0 && (
-                                    <div className="mt-2 mb-3 space-y-2">
+                                <textarea
+                                    rows="6"
+                                    value={data.problem_description}
+                                    onFocus={() => setShowProblemSuggestions(true)}
+                                    onChange={(e) => {
+                                        setData("problem_description", e.target.value);
+                                        setShowProblemSuggestions(false);
+                                    }}
+                                    required
+                                />
+
+                                {showProblemSuggestions && data.category && TicketSuggestions.employee[data.category]?.length > 0 && (
+                                    <div className="mt-2 space-y-2">
                                         {TicketSuggestions.employee[data.category].map((suggestion) => (
                                             <button
                                                 key={suggestion}
                                                 type="button"
                                                 className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
-                                                onClick={() => setData("problem_description", suggestion)}
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                onClick={() => {
+                                                    setData("problem_description", suggestion);
+                                                    setShowProblemSuggestions(false);
+                                                }}
                                             >
                                                 {suggestion}
                                             </button>
                                         ))}
                                     </div>
                                 )}
-
-                                <textarea
-                                    rows="6"
-                                    value={data.problem_description}
-                                    onChange={(e) => setData("problem_description", e.target.value)}
-                                    required
-                                />
                             </div>
 
                             <div>
@@ -283,6 +304,7 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                 <textarea
                                     rows="3"
                                     value={data.remarks}
+                                    onFocus={() => setShowProblemSuggestions(false)}
                                     onChange={(e) => setData("remarks", e.target.value)}
                                     placeholder="Add more details if needed..."
                                 />
@@ -491,6 +513,7 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                     type="text"
                                     className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
                                     value={editData.employee_name}
+                                    onFocus={() => setShowEditProblemSuggestions(false)}
                                     onChange={(e) => setEditData("employee_name", e.target.value)}
                                     required
                                 />
@@ -503,6 +526,7 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                 <select
                                     className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
                                     value={editData.department}
+                                    onFocus={() => setShowEditProblemSuggestions(false)}
                                     onChange={(e) => setEditData("department", e.target.value)}
                                     required
                                 >
@@ -522,7 +546,11 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                 <select
                                     className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
                                     value={editData.category}
-                                    onChange={(e) => setEditData("category", e.target.value)}
+                                    onFocus={() => setShowEditProblemSuggestions(false)}
+                                    onChange={(e) => {
+                                        setEditData("category", e.target.value);
+                                        setShowEditProblemSuggestions(false);
+                                    }}
                                     required
                                 >
                                     <option value="">Select Category</option>
@@ -539,28 +567,36 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                     Problem Description
                                 </label>
 
-                                {editData.category && TicketSuggestions.employee[editData.category]?.length > 0 && (
-                                    <div className="mt-2 mb-3 space-y-2">
+                                <textarea
+                                    rows="5"
+                                    className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
+                                    value={editData.problem_description}
+                                    onFocus={() => setShowEditProblemSuggestions(true)}
+                                    onChange={(e) => {
+                                        setEditData("problem_description", e.target.value);
+                                        setShowEditProblemSuggestions(false);
+                                    }}
+                                    required
+                                />
+
+                                {showEditProblemSuggestions && editData.category && TicketSuggestions.employee[editData.category]?.length > 0 && (
+                                    <div className="mt-2 space-y-2">
                                         {TicketSuggestions.employee[editData.category].map((suggestion) => (
                                             <button
                                                 key={suggestion}
                                                 type="button"
                                                 className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
-                                                onClick={() => setEditData("problem_description", suggestion)}
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                onClick={() => {
+                                                    setEditData("problem_description", suggestion);
+                                                    setShowEditProblemSuggestions(false);
+                                                }}
                                             >
                                                 {suggestion}
                                             </button>
                                         ))}
                                     </div>
                                 )}
-
-                                <textarea
-                                    rows="5"
-                                    className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
-                                    value={editData.problem_description}
-                                    onChange={(e) => setEditData("problem_description", e.target.value)}
-                                    required
-                                />
                             </div>
 
                             <div className="flex justify-center gap-4 pt-4">

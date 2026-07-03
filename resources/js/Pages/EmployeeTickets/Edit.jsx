@@ -1,7 +1,10 @@
 import { Head, useForm } from "@inertiajs/react";
 import TicketSuggestions from "@/Constants/TicketSuggestions";
+import { useState } from "react";
 
 export default function EmployeeTicketEdit({ ticket, tracking_code = "" }) {
+    const [showProblemSuggestions, setShowProblemSuggestions] = useState(false);
+
     const { data, setData, put, processing } = useForm({
         employee_name: ticket.employee_name || "",
         department: ticket.department || "",
@@ -50,6 +53,7 @@ export default function EmployeeTicketEdit({ ticket, tracking_code = "" }) {
                                     type="text"
                                     className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
                                     value={data.employee_name}
+                                    onFocus={() => setShowProblemSuggestions(false)}
                                     onChange={(e) => setData("employee_name", e.target.value)}
                                     required
                                 />
@@ -62,6 +66,7 @@ export default function EmployeeTicketEdit({ ticket, tracking_code = "" }) {
                                 <select
                                     className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
                                     value={data.department}
+                                    onFocus={() => setShowProblemSuggestions(false)}
                                     onChange={(e) => setData("department", e.target.value)}
                                     required
                                 >
@@ -81,7 +86,11 @@ export default function EmployeeTicketEdit({ ticket, tracking_code = "" }) {
                                 <select
                                     className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
                                     value={data.category}
-                                    onChange={(e) => setData("category", e.target.value)}
+                                    onFocus={() => setShowProblemSuggestions(false)}
+                                    onChange={(e) => {
+                                        setData("category", e.target.value);
+                                        setShowProblemSuggestions(false);
+                                    }}
                                     required
                                 >
                                     <option value="">Select Category</option>
@@ -98,28 +107,36 @@ export default function EmployeeTicketEdit({ ticket, tracking_code = "" }) {
                                     Problem Description
                                 </label>
 
-                                {data.category && TicketSuggestions.employee[data.category]?.length > 0 && (
-                                    <div className="mt-2 mb-3 space-y-2">
+                                <textarea
+                                    rows="6"
+                                    className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
+                                    value={data.problem_description}
+                                    onFocus={() => setShowProblemSuggestions(true)}
+                                    onChange={(e) => {
+                                        setData("problem_description", e.target.value);
+                                        setShowProblemSuggestions(false);
+                                    }}
+                                    required
+                                />
+
+                                {showProblemSuggestions && data.category && TicketSuggestions.employee[data.category]?.length > 0 && (
+                                    <div className="mt-2 space-y-2">
                                         {TicketSuggestions.employee[data.category].map((suggestion) => (
                                             <button
                                                 key={suggestion}
                                                 type="button"
                                                 className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
-                                                onClick={() => setData("problem_description", suggestion)}
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                onClick={() => {
+                                                    setData("problem_description", suggestion);
+                                                    setShowProblemSuggestions(false);
+                                                }}
                                             >
                                                 {suggestion}
                                             </button>
                                         ))}
                                     </div>
                                 )}
-
-                                <textarea
-                                    rows="6"
-                                    className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
-                                    value={data.problem_description}
-                                    onChange={(e) => setData("problem_description", e.target.value)}
-                                    required
-                                />
                             </div>
 
                             <div className="flex justify-center pt-4">

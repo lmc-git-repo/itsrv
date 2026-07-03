@@ -1,9 +1,11 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import TicketSuggestions from "@/Constants/TicketSuggestions";
 import { useForm, usePage } from "@inertiajs/react";
 
 export default function EditTicketModal({ show, ticket, onClose }) {
     const { users = [] } = usePage().props;
+    const [showProblemSuggestions, setShowProblemSuggestions] = useState(false);
+
     const superadminUsers = useMemo(() => {
         return Array.isArray(users)
             ? users.filter((u) => u?.role === "superadmin")
@@ -20,14 +22,41 @@ export default function EditTicketModal({ show, ticket, onClose }) {
 
     const categories = Object.keys(TicketSuggestions.superadmin);
 
+    const splitProblemDescription = (description) => {
+        if (!description) {
+            return {
+                problemDescription: "",
+                remarks: "",
+            };
+        }
+
+        const marker = "Remarks:";
+        const markerIndex = description.indexOf(marker);
+
+        if (markerIndex === -1) {
+            return {
+                problemDescription: description,
+                remarks: "",
+            };
+        }
+
+        return {
+            problemDescription: description.substring(0, markerIndex).trim(),
+            remarks: description.substring(markerIndex + marker.length).trim(),
+        };
+    };
+
     const original = useMemo(() => {
         if (!ticket) return null;
+
+        const ticketDetails = splitProblemDescription(ticket.problem_description || "");
 
         return {
             employee_name: ticket.employee_name || "",
             department: ticket.department || "",
             category: ticket.category || "",
-            problem_description: ticket.problem_description || "",
+            problem_description: ticketDetails.problemDescription || "",
+            remarks: ticketDetails.remarks || "",
             status: ticket.status || "",
             problem_solution: ticket.problem_solution || "",
             progress_update: ticket.progress_update || "",
@@ -37,12 +66,13 @@ export default function EditTicketModal({ show, ticket, onClose }) {
         };
     }, [ticket]);
 
-    const { data, setData, put, processing } = useForm(
+    const { data, setData, put, processing, transform } = useForm(
         original || {
             employee_name: "",
             department: "",
             category: "",
             problem_description: "",
+            remarks: "",
             status: "",
             problem_solution: "",
             progress_update: "",
@@ -57,7 +87,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             setData({
                 ...original,
                 problem_solution: "",
-                progress_update: "", 
+                progress_update: "",
             });
         }
     }, [original]);
@@ -83,6 +113,13 @@ export default function EditTicketModal({ show, ticket, onClose }) {
 
         if (!hasChanges || !ticket) return;
 
+        transform((data) => ({
+            ...data,
+            problem_description: data.remarks.trim()
+                ? `${data.problem_description}\n\nRemarks: ${data.remarks}`
+                : data.problem_description,
+        }));
+
         put(route("tickets.update", ticket.id), {
             preserveScroll: true,
             preserveState: false,
@@ -102,7 +139,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
 
             <form
                 onSubmit={handleSubmit}
-                className="relative bg-white rounded-xl w-full max-w-lg p-6 shadow-xl z-10"
+                className="relative bg-white rounded-xl w-full max-w-lg p-6 shadow-xl z-10 max-h-[90vh] overflow-y-auto"
             >
                 <button
                     type="button"
@@ -122,6 +159,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         <input
                             className="w-full rounded border px-3 py-2"
                             value={data.employee_name}
+                            onFocus={() => setShowProblemSuggestions(false)}
                             onChange={(e) =>
                                 setData("employee_name", e.target.value)
                             }
@@ -133,6 +171,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         <select
                             className="w-full rounded border px-3 py-2"
                             value={data.department}
+                            onFocus={() => setShowProblemSuggestions(false)}
                             onChange={(e) =>
                                 setData("department", e.target.value)
                             }
@@ -151,9 +190,11 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         <select
                             className="w-full rounded border px-3 py-2"
                             value={data.category}
-                            onChange={(e) =>
-                                setData("category", e.target.value)
-                            }
+                            onFocus={() => setShowProblemSuggestions(false)}
+                            onChange={(e) => {
+                                setData("category", e.target.value);
+                                setShowProblemSuggestions(false);
+                            }}
                         >
                             <option value="">Select Category</option>
                             {categories.map((c) => (
@@ -166,28 +207,50 @@ export default function EditTicketModal({ show, ticket, onClose }) {
 
                     <div>
                         <label>Problem Description</label>
-                        <input
+
+                        <textarea
+                            rows="3"
                             className="w-full rounded border px-3 py-2"
                             value={data.problem_description}
-                            onChange={(e) =>
-                                setData("problem_description", e.target.value)
-                            }
+                            onFocus={() => setShowProblemSuggestions(true)}
+                            onChange={(e) => {
+                                setData("problem_description", e.target.value);
+                                setShowProblemSuggestions(false);
+                            }}
                         />
 
-                        {data.category && TicketSuggestions.superadmin[data.category]?.length > 0 && (
-                        <div className="mt-2 space-y-2">
-                            {TicketSuggestions.superadmin[data.category].map((suggestion) => (
-                                <button
-                                    key={suggestion}
-                                    type="button"
-                                    className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
-                                    onClick={() => setData("problem_description", suggestion)}
-                                >
-                                    {suggestion}
-                                </button>
-                            ))}
-                        </div>
-                    )}
+                        {showProblemSuggestions && data.category && TicketSuggestions.superadmin[data.category]?.length > 0 && (
+                            <div className="mt-2 space-y-2">
+                                {TicketSuggestions.superadmin[data.category].map((suggestion) => (
+                                    <button
+                                        key={suggestion}
+                                        type="button"
+                                        className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => {
+                                            setData("problem_description", suggestion);
+                                            setShowProblemSuggestions(false);
+                                        }}
+                                    >
+                                        {suggestion}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div>
+                        <label>Remarks</label>
+                        <textarea
+                            rows="3"
+                            className="w-full rounded border px-3 py-2"
+                            value={data.remarks}
+                            onFocus={() => setShowProblemSuggestions(false)}
+                            onChange={(e) =>
+                                setData("remarks", e.target.value)
+                            }
+                            placeholder="Add more details if needed..."
+                        />
                     </div>
 
                     <div>
@@ -195,6 +258,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         <select
                             className="w-full rounded border px-3 py-2"
                             value={data.status}
+                            onFocus={() => setShowProblemSuggestions(false)}
                             onChange={(e) =>
                                 setData("status", e.target.value)
                             }
@@ -212,6 +276,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                                 className="w-full rounded border px-3 py-2"
                                 placeholder="Enter progress update"
                                 value={data.progress_update || ""}
+                                onFocus={() => setShowProblemSuggestions(false)}
                                 onChange={(e) =>
                                     setData("progress_update", e.target.value)
                                 }
@@ -225,6 +290,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                             type="date"
                             className="w-full rounded border px-3 py-2"
                             value={data.date_opened}
+                            onFocus={() => setShowProblemSuggestions(false)}
                             onChange={(e) =>
                                 setData("date_opened", e.target.value)
                             }
@@ -238,6 +304,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                                 type="date"
                                 className="w-full rounded border px-3 py-2"
                                 value={data.resolved_at}
+                                onFocus={() => setShowProblemSuggestions(false)}
                                 onChange={(e) =>
                                     setData("resolved_at", e.target.value)
                                 }
@@ -252,6 +319,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                                 className="w-full rounded border px-3 py-2"
                                 placeholder="Enter solution"
                                 value={data.problem_solution || ""}
+                                onFocus={() => setShowProblemSuggestions(false)}
                                 onChange={(e) =>
                                     setData("problem_solution", e.target.value)
                                 }
@@ -265,6 +333,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                             <select
                                 className="w-full rounded border px-3 py-2 text-[#101E33]"
                                 value={data.resolved_by}
+                                onFocus={() => setShowProblemSuggestions(false)}
                                 onChange={(e) =>
                                     setData("resolved_by", e.target.value)
                                 }
