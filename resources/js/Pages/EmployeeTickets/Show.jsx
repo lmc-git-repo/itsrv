@@ -1,6 +1,19 @@
 import { Head, Link } from "@inertiajs/react";
 
 export default function EmployeeTicketShow({ ticket, tracking_code = "" }) {
+    const formatDateTime = (date) => {
+        if (!date) return "—";
+
+        return new Date(date).toLocaleString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+    };
+
     const statusClass = (status) => {
         switch (status) {
             case "Open":
@@ -37,8 +50,8 @@ export default function EmployeeTicketShow({ ticket, tracking_code = "" }) {
                             <p><strong>Employee Name:</strong> {ticket.employee_name}</p>
                             <p><strong>Department:</strong> {ticket.department}</p>
                             <p><strong>Category:</strong> {ticket.category}</p>
-                            <p><strong>Date Opened:</strong> {ticket.date_opened}</p>
-                            <p><strong>Resolved At:</strong> {ticket.resolved_at || "—"}</p>
+                            <p><strong>Date Opened:</strong> {formatDateTime(ticket.created_at)}</p>
+                            <p><strong>Resolved At:</strong> {ticket.resolved_at ? formatDateTime(ticket.updated_at) : "—"}</p>
 
                             <div>
                                 <strong>Problem Description:</strong>

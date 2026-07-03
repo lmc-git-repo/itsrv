@@ -1,4 +1,5 @@
 import { useForm } from "@inertiajs/react";
+import TicketSuggestions from "@/Constants/TicketSuggestions";
 
 export default function CreateTicketModal({ show, onClose }) {
 
@@ -19,17 +20,7 @@ export default function CreateTicketModal({ show, onClose }) {
         "New Project", "PPC", "Purchasing", "QC", "Safety", "Sales",
     ];
 
-    const categories = [
-        "Application & System Support",
-        "Hardware Support & Device Setup",
-        "Account & Access Management",
-        "File, Data & Document Management",
-        "Network & Connectivity Support",
-        "IT Operations & Maintenance",
-        "Asset & Equipment Handling",
-        "Security & Permissions",
-        "Others",
-    ];
+    const categories = Object.keys(TicketSuggestions.superadmin);
 
     const statuses = ["Open", "Ongoing", "Resolved"];
 
@@ -39,7 +30,7 @@ export default function CreateTicketModal({ show, onClose }) {
         data.category &&
         data.problem_description.trim() &&
         data.status &&
-        data.date_opened; // ✅ INSERTED
+        data.date_opened;
 
     const submit = () => {
         if (!isValid) return;
@@ -135,6 +126,21 @@ export default function CreateTicketModal({ show, onClose }) {
                             value={data.problem_description}
                             onChange={e => setData("problem_description", e.target.value)}
                         />
+
+                        {data.category && TicketSuggestions.superadmin[data.category]?.length > 0 && (
+                        <div className="mt-2 space-y-2">
+                            {TicketSuggestions.superadmin[data.category].map((suggestion) => (
+                                <button
+                                    key={suggestion}
+                                    type="button"
+                                    className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
+                                    onClick={() => setData("problem_description", suggestion)}
+                                >
+                                    {suggestion}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                     </div>
 
                     <div>

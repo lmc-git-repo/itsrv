@@ -1,4 +1,5 @@
 import { Head, router, useForm } from "@inertiajs/react";
+import TicketSuggestions from "@/Constants/TicketSuggestions";
 import { useEffect, useState } from "react";
 
 export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "", submitted_ticket_no = "", activeEmployees = [] }) {
@@ -6,11 +7,51 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
     const [editTicket, setEditTicket] = useState(null);
     const [monitorTrackingCode, setMonitorTrackingCode] = useState("");
 
-    const { data, setData, post, processing, reset } = useForm({
+    const formatDateTime = (date) => {
+        if (!date) return "—";
+
+        return new Date(date).toLocaleString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+    };
+
+    const splitProblemDescription = (description) => {
+        if (!description) {
+            return {
+                problemDescription: "",
+                remarks: "No remarks provided.",
+            };
+        }
+
+        const marker = "\n\nRemarks:";
+        const markerIndex = description.indexOf(marker);
+
+        if (markerIndex === -1) {
+            return {
+                problemDescription: description,
+                remarks: "No remarks provided.",
+            };
+        }
+
+        return {
+            problemDescription: description.substring(0, markerIndex).trim(),
+            remarks: description.substring(markerIndex + marker.length).trim() || "No remarks provided.",
+        };
+    };
+
+    const selectedTicketDetails = splitProblemDescription(selectedTicket?.problem_description);
+
+    const { data, setData, post, processing, reset, transform } = useForm({
         employee_name: "",
         department: "",
         category: "",
         problem_description: "",
+        remarks: "",
     });
 
     const {
@@ -34,19 +75,11 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
         "New Project", "PPC", "Purchasing", "QC", "Safety", "Sales",
     ];
 
-    const categories = [
-        "Hardware",
-        "Software / Application",
-        "Account / Login",
-        "File / Folder Access",
-        "Network / Internet",
-        "CCTV / Security",
-        "Others",
-    ];
+    const categories = Object.keys(TicketSuggestions.employee);
 
     useEffect(() => {
-    setMonitorTrackingCode(tracking_code || "");
-}, [tracking_code]);
+        setMonitorTrackingCode(tracking_code || "");
+    }, [tracking_code]);
 
     useEffect(() => {
         if (editTicket) {
@@ -61,26 +94,33 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
     }, [editTicket]);
 
     const submit = (e) => {
-    e.preventDefault();
+        e.preventDefault();
 
-    post(route("employee.tickets.store"), {
-        preserveScroll: true,
-        onSuccess: () => {
-            reset();
-            setMonitorTrackingCode("");
-            localStorage.removeItem("employee_tracking_code");
+        transform((data) => ({
+            ...data,
+            problem_description: data.remarks.trim()
+                ? `${data.problem_description}\n\nRemarks: ${data.remarks}`
+                : data.problem_description,
+        }));
 
-            router.get(
-                route("employee.tickets"),
-                {},
-                {
-                    preserveScroll: true,
-                    preserveState: false,
-                }
-            );
-        },
-    });
-};
+        post(route("employee.tickets.store"), {
+            preserveScroll: true,
+            onSuccess: () => {
+                reset();
+                setMonitorTrackingCode("");
+                localStorage.removeItem("employee_tracking_code");
+
+                router.get(
+                    route("employee.tickets"),
+                    {},
+                    {
+                        preserveScroll: true,
+                        preserveState: false,
+                    }
+                );
+            },
+        });
+    };
 
     const checkTicketStatus = (e) => {
         e.preventDefault();
@@ -214,11 +254,37 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
 
                             <div>
                                 <label>Problem Description</label>
+
+                                {data.category && TicketSuggestions.employee[data.category]?.length > 0 && (
+                                    <div className="mt-2 mb-3 space-y-2">
+                                        {TicketSuggestions.employee[data.category].map((suggestion) => (
+                                            <button
+                                                key={suggestion}
+                                                type="button"
+                                                className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
+                                                onClick={() => setData("problem_description", suggestion)}
+                                            >
+                                                {suggestion}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
                                 <textarea
                                     rows="6"
                                     value={data.problem_description}
                                     onChange={(e) => setData("problem_description", e.target.value)}
                                     required
+                                />
+                            </div>
+
+                            <div>
+                                <label>Remarks</label>
+                                <textarea
+                                    rows="3"
+                                    value={data.remarks}
+                                    onChange={(e) => setData("remarks", e.target.value)}
+                                    placeholder="Add more details if needed..."
                                 />
                             </div>
 
@@ -243,7 +309,7 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                     onChange={(e) => {
                                         const value = e.target.value.toUpperCase();
                                         setMonitorTrackingCode(value);
-                                        
+
                                         if (!value.trim()) {
                                             router.get(route("employee.tickets"), {}, {
                                                 preserveScroll: true,
@@ -353,15 +419,24 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                             <p><strong>Department:</strong> {selectedTicket.department}</p>
                             <p><strong>Category:</strong> {selectedTicket.category}</p>
                             <p><strong>Status:</strong> {selectedTicket.status}</p>
-                            <p><strong>Date Opened:</strong> {selectedTicket.date_opened}</p>
-                            <p><strong>Resolved At:</strong> {selectedTicket.resolved_at || "—"}</p>
+                            <p><strong>Date Opened:</strong> {formatDateTime(selectedTicket.created_at || selectedTicket.date_opened)}</p>
+                            <p><strong>Resolved At:</strong> {selectedTicket.resolved_at ? formatDateTime(selectedTicket.updated_at || selectedTicket.resolved_at) : "—"}</p>
 
                             <div>
                                 <strong>Problem Description:</strong>
                                 <textarea
                                     readOnly
                                     className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base text-[#101E33]"
-                                    value={selectedTicket.problem_description || ""}
+                                    value={selectedTicketDetails.problemDescription}
+                                />
+                            </div>
+
+                            <div>
+                                <strong>Remarks:</strong>
+                                <textarea
+                                    readOnly
+                                    className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base text-[#101E33]"
+                                    value={selectedTicketDetails.remarks}
                                 />
                             </div>
 
@@ -463,6 +538,22 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                 <label className="block mb-1 font-semibold text-[#101E33]">
                                     Problem Description
                                 </label>
+
+                                {editData.category && TicketSuggestions.employee[editData.category]?.length > 0 && (
+                                    <div className="mt-2 mb-3 space-y-2">
+                                        {TicketSuggestions.employee[editData.category].map((suggestion) => (
+                                            <button
+                                                key={suggestion}
+                                                type="button"
+                                                className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
+                                                onClick={() => setEditData("problem_description", suggestion)}
+                                            >
+                                                {suggestion}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
                                 <textarea
                                     rows="5"
                                     className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"

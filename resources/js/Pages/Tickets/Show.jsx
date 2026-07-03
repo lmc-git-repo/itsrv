@@ -1,6 +1,44 @@
 import { useEffect } from "react";
 
 export default function Show({ show, ticket, onClose }) {
+    const formatDateTime = (date) => {
+        if (!date) return "—";
+
+        return new Date(date).toLocaleString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+    };
+
+    const splitProblemDescription = (description) => {
+        if (!description) {
+            return {
+                problemDescription: "",
+                remarks: "No remarks provided.",
+            };
+        }
+
+        const marker = "\n\nRemarks:";
+        const markerIndex = description.indexOf(marker);
+
+        if (markerIndex === -1) {
+            return {
+                problemDescription: description,
+                remarks: "No remarks provided.",
+            };
+        }
+
+        return {
+            problemDescription: description.substring(0, markerIndex).trim(),
+            remarks: description.substring(markerIndex + marker.length).trim() || "No remarks provided.",
+        };
+    };
+
+    const ticketDetails = splitProblemDescription(ticket?.problem_description);
 
     useEffect(() => {
         const handleEsc = (e) => {
@@ -44,11 +82,10 @@ export default function Show({ show, ticket, onClose }) {
                     <p><strong>Ticket No:</strong> {ticket.ticket_no || "—"}</p>
                     <p><strong>Employee Name:</strong> {ticket.employee_name}</p>
                     <p><strong>Department:</strong> {ticket.department}</p>
-                    {/* <p><strong>Category:</strong> {ticket.employee_category || ticket.category}</p> */}
                     <p><strong>Category:</strong> {ticket.category}</p>
                     <p><strong>Status:</strong> {ticket.status}</p>
-                    <p><strong>Date Opened:</strong> {ticket.date_opened}</p>
-                    <p><strong>Resolved At:</strong> {ticket.resolved_at || "—"}</p>
+                    <p><strong>Date Opened:</strong> {formatDateTime(ticket.created_at || ticket.date_opened)}</p>
+                    <p><strong>Resolved At:</strong> {ticket.resolved_at ? formatDateTime(ticket.updated_at || ticket.resolved_at) : "—"}</p>
 
                     <p><strong>Created By:</strong> {ticket.creator?.name || "Employee"}</p>
                     <p><strong>Resolved By:</strong> {ticket.resolver?.name || "—"}</p>
@@ -58,7 +95,16 @@ export default function Show({ show, ticket, onClose }) {
                         <textarea
                             readOnly
                             className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base"
-                            value={ticket.problem_description || ""}
+                            value={ticketDetails.problemDescription}
+                        />
+                    </div>
+
+                    <div>
+                        <strong>Remarks:</strong>
+                        <textarea
+                            readOnly
+                            className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base"
+                            value={ticketDetails.remarks}
                         />
                     </div>
 

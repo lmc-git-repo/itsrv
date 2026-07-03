@@ -1,10 +1,11 @@
 import { Head, useForm } from "@inertiajs/react";
+import TicketSuggestions from "@/Constants/TicketSuggestions";
 
 export default function EmployeeTicketEdit({ ticket, tracking_code = "" }) {
     const { data, setData, put, processing } = useForm({
         employee_name: ticket.employee_name || "",
         department: ticket.department || "",
-        category: ticket.category || "",
+        category: ticket.employee_category || ticket.category || "",
         problem_description: ticket.problem_description || "",
         tracking_code: tracking_code || ticket.tracking_code || "",
     });
@@ -17,16 +18,7 @@ export default function EmployeeTicketEdit({ ticket, tracking_code = "" }) {
         "New Project", "PPC", "Purchasing", "QC", "Safety", "Sales",
     ];
 
-    const categories = [
-        "Application & System Support",
-        "Hardware Support & Device Setup",
-        "Account & Access Management",
-        "File, Data & Document Management",
-        "Network & Connectivity Support",
-        "Asset & Equipment Handling",
-        "Security & Permissions",
-        "Others",
-    ];
+    const categories = Object.keys(TicketSuggestions.employee);
 
     const submit = (e) => {
         e.preventDefault();
@@ -105,6 +97,22 @@ export default function EmployeeTicketEdit({ ticket, tracking_code = "" }) {
                                 <label className="block mb-1 font-semibold text-[#101E33]">
                                     Problem Description
                                 </label>
+
+                                {data.category && TicketSuggestions.employee[data.category]?.length > 0 && (
+                                    <div className="mt-2 mb-3 space-y-2">
+                                        {TicketSuggestions.employee[data.category].map((suggestion) => (
+                                            <button
+                                                key={suggestion}
+                                                type="button"
+                                                className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
+                                                onClick={() => setData("problem_description", suggestion)}
+                                            >
+                                                {suggestion}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
                                 <textarea
                                     rows="6"
                                     className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"

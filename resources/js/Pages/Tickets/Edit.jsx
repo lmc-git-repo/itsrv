@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from "react";
+import TicketSuggestions from "@/Constants/TicketSuggestions";
 import { useForm, usePage } from "@inertiajs/react";
 
 export default function EditTicketModal({ show, ticket, onClose }) {
@@ -17,17 +18,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
         "New Project", "PPC", "Purchasing", "QC", "Safety", "Sales",
     ];
 
-    const categories = [
-        "Application & System Support",
-        "Hardware Support & Device Setup",
-        "Account & Access Management",
-        "File, Data & Document Management",
-        "Network & Connectivity Support",
-        "IT Operations & Maintenance",
-        "Asset & Equipment Handling",
-        "Security & Permissions",
-        "Others",
-    ];
+    const categories = Object.keys(TicketSuggestions.superadmin);
 
     const original = useMemo(() => {
         if (!ticket) return null;
@@ -66,7 +57,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             setData({
                 ...original,
                 problem_solution: "",
-                progress_update: "", // ✅ RESET LIKE THREAD INPUT
+                progress_update: "", 
             });
         }
     }, [original]);
@@ -97,7 +88,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             preserveState: false,
             onSuccess: () => {
                 setData("problem_solution", "");
-                setData("progress_update", ""); // ✅ CLEAR AFTER SUBMIT
+                setData("progress_update", "");
                 onClose();
             },
         });
@@ -182,6 +173,21 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                                 setData("problem_description", e.target.value)
                             }
                         />
+
+                        {data.category && TicketSuggestions.superadmin[data.category]?.length > 0 && (
+                        <div className="mt-2 space-y-2">
+                            {TicketSuggestions.superadmin[data.category].map((suggestion) => (
+                                <button
+                                    key={suggestion}
+                                    type="button"
+                                    className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
+                                    onClick={() => setData("problem_description", suggestion)}
+                                >
+                                    {suggestion}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                     </div>
 
                     <div>

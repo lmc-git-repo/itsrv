@@ -1,0 +1,120 @@
+const TicketSuggestions = {
+    employee: {
+        Hardware: [
+            "Computer won't turn on.",
+            "Monitor has no display.",
+            "Keyboard or mouse is not working.",
+            "Printer is not printing.",
+            "Scanner is not working.",
+        ],
+        "Software / Application": [
+            "Cannot open the Word/PPT/Excel.",
+            "Word/PPT/Excel keeps crashing.",
+            "Word/PPT/Excel is very slow.",
+            "Receiving an error message while using the application.",
+            "Need installation of a software/application.",
+        ],
+        "Account / Login": [
+            "Forgot my password.",
+            "Cannot log in to my account.",
+            "Account is locked.",
+            "Need password reset.",
+            "Request new user account.",
+            "Need Microsoft 365 account access.",
+            "Need system account access.",
+            "Request account permission update.",
+        ],
+        "File / Folder Access": [
+            "Cannot access the All Shared Folder.",
+            "Cannot access the ERP Data Center.",
+            "Cannot access the Tablet Network Sharing.",
+            "Cannot access the CMM File Sharing.",
+            "Cannot access the Network Shared Folder.",
+            "Need read-only access to a folder.",
+            "Need read and write access to a folder.",
+            "File is missing from the shared folder.",
+            "Cannot open an Excel, Word, or PDF file.",
+        ],
+        "Network / Internet": [
+            "No internet connection.",
+            "Internet is very slow.",
+            "Cannot access a website.",
+            "Cannot connect to the network.",
+            "LAN cable is disconnected or not detected.",
+        ],
+        "CCTV / Security": [
+            "WatchGuard permission pop-up appears.",
+            "Need permission to connect my cellphone to the computer.",
+            "Need permission to connect to Wi-Fi.",
+            "Request for CCTV viewing for a specific incident.",
+            "Need assistance with blocked access or security permission.",
+        ],
+        Others: [
+            "Other IT-related concern.",
+        ],
+    },
+
+    superadmin: {
+        "Application & System Support": [
+            "Application installation",
+            "System configuration",
+            "ERP issue",
+            "Microsoft Office issue",
+            "Application error",
+        ],
+        "Hardware Support & Device Setup": [
+            "Desktop not booting",
+            "Laptop troubleshooting",
+            "Printer installation",
+            "Monitor replacement",
+            "Peripheral device setup",
+        ],
+        "Account & Access Management": [
+            "Active Directory account creation",
+            "Password reset",
+            "Microsoft 365 account setup",
+            "User permission update",
+            "Account unlock",
+        ],
+        "File, Data & Document Management": [
+            "Shared folder permission",
+            "Read and write access request",
+            "File recovery",
+            "Excel file issue",
+            "Data migration",
+        ],
+        "Network & Connectivity Support": [
+            "Internet connectivity issue",
+            "LAN cable issue",
+            "Wi-Fi configuration",
+            "Network troubleshooting",
+            "IP configuration",
+        ],
+        "IT Operations & Maintenance": [
+            "Preventive maintenance",
+            "System health check",
+            "Monthly backup",
+            "Server maintenance",
+            "Equipment inspection",
+        ],
+        "Asset & Equipment Handling": [
+            "Computer deployment",
+            "Laptop deployment",
+            "Asset transfer",
+            "Equipment pull-out",
+            "Device inventory",
+        ],
+        "Security & Permissions": [
+            "WatchGuard device permission request",
+            "CCTV viewing request for incident verification",
+            "Wi-Fi access permission",
+            "Blocked device or removable media access",
+            "Security permission configuration",
+        ],
+        Others: [
+            "Other IT concern",
+        ],
+    },
+};
+
+export default TicketSuggestions;
