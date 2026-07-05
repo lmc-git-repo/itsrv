@@ -5,13 +5,14 @@ import TicketSuggestions from "@/Constants/TicketSuggestions";
 export default function CreateTicketModal({ show, onClose }) {
     const [showProblemSuggestions, setShowProblemSuggestions] = useState(false);
 
-    const { data, setData, post, processing, reset } = useForm({
+    const { data, setData, post, processing, reset, transform } = useForm({
         employee_name: "",
         department: "",
         category: "",
         problem_description: "",
         status: "Open",
         date_opened: "",
+        resolved_at: "",
     });
 
     const departments = [
@@ -26,6 +27,13 @@ export default function CreateTicketModal({ show, onClose }) {
 
     const statuses = ["Open", "Ongoing", "Resolved"];
 
+    const withCurrentTime = (date) => {
+        if (!date) return "";
+        const now = new Date();
+        const time = now.toTimeString().slice(0, 8);
+        return `${date} ${time}`;
+    };
+
     const isValid =
         data.employee_name.trim() &&
         data.department &&
@@ -36,6 +44,11 @@ export default function CreateTicketModal({ show, onClose }) {
 
     const submit = () => {
         if (!isValid) return;
+
+        transform((data) => ({
+            ...data,
+            date_opened: withCurrentTime(data.date_opened),
+        }));
 
         post(route("tickets.store"), {
             preserveScroll: true,
@@ -55,7 +68,7 @@ export default function CreateTicketModal({ show, onClose }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
-            <div className="relative bg-[#f5f7fb] rounded-xl w-full max-w-lg p-6 shadow-xl z-10">
+            <div className="relative bg-[#f5f7fb] rounded-xl w-full max-w-lg p-6 shadow-xl z-10 max-h-[90vh] overflow-y-auto">
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 text-gray-600 hover:text-black"
@@ -68,7 +81,6 @@ export default function CreateTicketModal({ show, onClose }) {
                 </h2>
 
                 <div className="space-y-4 text-sm text-[#101E33]">
-
                     <div>
                         <label className="block mb-1">Employee Name</label>
                         <input
@@ -192,7 +204,6 @@ export default function CreateTicketModal({ show, onClose }) {
                             Create
                         </button>
                     </div>
-
                 </div>
             </div>
         </div>

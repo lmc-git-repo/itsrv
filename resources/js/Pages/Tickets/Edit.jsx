@@ -22,6 +22,18 @@ export default function EditTicketModal({ show, ticket, onClose }) {
 
     const categories = Object.keys(TicketSuggestions.superadmin);
 
+    const formatDateInput = (date) => {
+        if (!date) return "";
+        return String(date).substring(0, 10);
+    };
+
+    const withCurrentTime = (date) => {
+        if (!date) return "";
+        const now = new Date();
+        const time = now.toTimeString().slice(0, 8);
+        return `${date} ${time}`;
+    };
+
     const splitProblemDescription = (description) => {
         if (!description) {
             return {
@@ -57,8 +69,8 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             problem_solution: ticket.problem_solution || "",
             progress_update: ticket.progress_update || "",
             resolved_by: ticket.resolved_by ? String(ticket.resolved_by) : "",
-            date_opened: ticket.date_opened || "",
-            resolved_at: ticket.resolved_at || "",
+            date_opened: formatDateInput(ticket.date_opened || ""),
+            resolved_at: formatDateInput(ticket.resolved_at || ""),
         };
     }, [ticket]);
 
@@ -111,6 +123,11 @@ export default function EditTicketModal({ show, ticket, onClose }) {
         transform((data) => ({
             ...data,
             problem_description: data.problem_description,
+            date_opened: withCurrentTime(data.date_opened),
+            resolved_at:
+                data.status === "Resolved" && data.resolved_at
+                    ? withCurrentTime(data.resolved_at)
+                    : "",
         }));
 
         put(route("tickets.update", ticket.id), {

@@ -34,15 +34,16 @@ export default function Show({ show, ticket, onClose }) {
             };
         }
 
+        const remarks = description.substring(markerIndex + marker.length).trim();
+
         return {
             problemDescription: description.substring(0, markerIndex).trim(),
-            remarks: description.substring(markerIndex + marker.length).trim(),
-            hasRemarks: true,
+            remarks: remarks,
+            hasRemarks: remarks !== "",
         };
     };
 
     const ticketDetails = splitProblemDescription(ticket?.problem_description);
-    const isEmployeeCreatedTicket = !ticket?.creator?.name;
 
     useEffect(() => {
         const handleEsc = (e) => {
@@ -88,8 +89,8 @@ export default function Show({ show, ticket, onClose }) {
                     <p><strong>Department:</strong> {ticket.department}</p>
                     <p><strong>Category:</strong> {ticket.category}</p>
                     <p><strong>Status:</strong> {ticket.status}</p>
-                    <p><strong>Date Opened:</strong> {formatDateTime(ticket.created_at || ticket.date_opened)}</p>
-                    <p><strong>Resolved At:</strong> {ticket.resolved_at ? formatDateTime(ticket.updated_at || ticket.resolved_at) : "—"}</p>
+                    <p><strong>Date Opened:</strong> {formatDateTime(ticket.date_opened || ticket.created_at)}</p>
+                    <p><strong>Resolved At:</strong> {ticket.resolved_at ? formatDateTime(ticket.resolved_at) : "—"}</p>
 
                     <p><strong>Created By:</strong> {ticket.creator?.name || "Employee"}</p>
                     <p><strong>Resolved By:</strong> {ticket.resolver?.name || "—"}</p>
@@ -103,7 +104,7 @@ export default function Show({ show, ticket, onClose }) {
                         />
                     </div>
 
-                    {isEmployeeCreatedTicket && ticketDetails.hasRemarks && (
+                    {ticketDetails.hasRemarks && (
                         <div>
                             <strong>Remarks:</strong>
                             <textarea
