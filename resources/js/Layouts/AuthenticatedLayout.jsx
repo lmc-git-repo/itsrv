@@ -86,34 +86,36 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Tickets
                                 </Link>
 
-                                <Dropdown>
-                                    <Dropdown.Trigger>
-                                        <button className="flex items-center gap-1 text-white/80 hover:text-blue-400">
-                                            Records
-                                            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                                <path
-                                                    fillRule="evenodd"
-                                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                    clipRule="evenodd"
-                                                />
-                                            </svg>
-                                        </button>
-                                    </Dropdown.Trigger>
+                                {isSuperAdmin && (
+                                    <Dropdown>
+                                        <Dropdown.Trigger>
+                                            <button className="flex items-center gap-1 text-white/80 hover:text-blue-400">
+                                                Records
+                                                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path
+                                                        fillRule="evenodd"
+                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                        clipRule="evenodd"
+                                                    />
+                                                </svg>
+                                            </button>
+                                        </Dropdown.Trigger>
 
-                                    <Dropdown.Content>
-                                        <Dropdown.Link href={route('troublereport.index')}>
-                                            Trouble Report
-                                        </Dropdown.Link>
+                                        <Dropdown.Content>
+                                            <Dropdown.Link href={route('troublereport.index')}>
+                                                Trouble Report
+                                            </Dropdown.Link>
 
-                                        <Dropdown.Link href="/records/transfer-slip">
-                                            Transfer Slip
-                                        </Dropdown.Link>
+                                            <Dropdown.Link href="/records/transfer-slip">
+                                                Transfer Slip
+                                            </Dropdown.Link>
 
-                                        <Dropdown.Link href={route('cptransferslip.index')}>
-                                            Transfer Slip - Cellphone
-                                        </Dropdown.Link>
-                                    </Dropdown.Content>
-                                </Dropdown>
+                                            <Dropdown.Link href={route('cptransferslip.index')}>
+                                                Transfer Slip - Cellphone
+                                            </Dropdown.Link>
+                                        </Dropdown.Content>
+                                    </Dropdown>
+                                )}
 
                                 {isSuperAdmin && (
                                     <Link href="/it-tools" className="hover:text-blue-400">
