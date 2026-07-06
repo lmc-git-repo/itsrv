@@ -38,20 +38,23 @@ export default function EditTicketModal({ show, ticket, onClose }) {
         if (!description) {
             return {
                 problemDescription: "",
+                remarksText: "",
             };
         }
 
-        const marker = "Remarks:";
+        const marker = "\n\nRemarks:";
         const markerIndex = description.indexOf(marker);
 
         if (markerIndex === -1) {
             return {
                 problemDescription: description,
+                remarksText: "",
             };
         }
 
         return {
             problemDescription: description.substring(0, markerIndex).trim(),
+            remarksText: description.substring(markerIndex).trim(),
         };
     };
 
@@ -65,6 +68,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             department: ticket.department || "",
             category: ticket.category || "",
             problem_description: ticketDetails.problemDescription || "",
+            remarks_text: ticketDetails.remarksText || "",
             status: ticket.status || "",
             problem_solution: ticket.problem_solution || "",
             progress_update: ticket.progress_update || "",
@@ -80,6 +84,7 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             department: "",
             category: "",
             problem_description: "",
+            remarks_text: "",
             status: "",
             problem_solution: "",
             progress_update: "",
@@ -122,7 +127,9 @@ export default function EditTicketModal({ show, ticket, onClose }) {
 
         transform((data) => ({
             ...data,
-            problem_description: data.problem_description,
+            problem_description: data.remarks_text
+                ? `${data.problem_description}\n\n${data.remarks_text}`
+                : data.problem_description,
             date_opened: withCurrentTime(data.date_opened),
             resolved_at:
                 data.status === "Resolved" && data.resolved_at
