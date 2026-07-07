@@ -55,61 +55,61 @@ const TicketSuggestions = {
     },
 
     superadmin: {
-        "Application & System Support": [
-            "Application installation",
-            "System configuration",
-            "ERP issue",
-            "Microsoft Office issue",
-            "Application error",
-        ],
-        "Hardware Support & Device Setup": [
+        Hardware: [
             "Desktop not booting",
             "Laptop troubleshooting",
             "Printer installation",
             "Monitor replacement",
             "Peripheral device setup",
         ],
-        "Account & Access Management": [
-            "Active Directory account creation",
-            "Password reset",
-            "Microsoft 365 account setup",
-            "User permission update",
-            "Account unlock",
+        "System / Application": [
+            "Application installation",
+            "System configuration",
+            "ERP issue",
+            "Microsoft Office issue",
+            "Application error",
         ],
-        "File, Data & Document Management": [
-            "Shared folder permission",
-            "Read and write access request",
-            "File recovery",
-            "Excel file issue",
-            "Data migration",
-        ],
-        "Network & Connectivity Support": [
+        "Network & Internet": [
             "Internet connectivity issue",
             "LAN cable issue",
             "Wi-Fi configuration",
             "Network troubleshooting",
             "IP configuration",
         ],
-        "IT Operations & Maintenance": [
+        "Accounts & Access": [
+            "Active Directory account creation",
+            "Password reset",
+            "Microsoft 365 account setup",
+            "User permission update",
+            "Account unlock",
+        ],
+        "Files & Shared Folder": [
+            "Shared folder permission",
+            "Read and write access request",
+            "File recovery",
+            "Excel file issue",
+            "Data migration",
+        ],
+        Security: [
+            "WatchGuard device permission request",
+            "CCTV viewing request for incident verification",
+            "Wi-Fi access permission",
+            "Blocked device or removable media access",
+            "Security permission configuration",
+        ],
+        "IT Operations": [
             "Preventive maintenance",
             "System health check",
             "Monthly backup",
             "Server maintenance",
             "Equipment inspection",
         ],
-        "Asset & Equipment Handling": [
+        Equipment: [
             "Computer deployment",
             "Laptop deployment",
             "Asset transfer",
             "Equipment pull-out",
             "Device inventory",
-        ],
-        "Security & Permissions": [
-            "WatchGuard device permission request",
-            "CCTV viewing request for incident verification",
-            "Wi-Fi access permission",
-            "Blocked device or removable media access",
-            "Security permission configuration",
         ],
         Others: [
             "Other IT concern",

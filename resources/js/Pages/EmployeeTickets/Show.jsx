@@ -14,6 +14,37 @@ export default function EmployeeTicketShow({ ticket, tracking_code = "" }) {
         });
     };
 
+    const splitProblemDescription = (description) => {
+        if (!description) {
+            return {
+                problemDescription: "",
+                remarks: "",
+                hasRemarks: false,
+            };
+        }
+
+        const marker = "\n\nRemarks:";
+        const markerIndex = description.indexOf(marker);
+
+        if (markerIndex === -1) {
+            return {
+                problemDescription: description,
+                remarks: "",
+                hasRemarks: false,
+            };
+        }
+
+        const remarks = description.substring(markerIndex + marker.length).trim();
+
+        return {
+            problemDescription: description.substring(0, markerIndex).trim(),
+            remarks: remarks,
+            hasRemarks: remarks !== "",
+        };
+    };
+
+    const ticketDetails = splitProblemDescription(ticket.problem_description);
+
     const statusClass = (status) => {
         switch (status) {
             case "Open":
@@ -49,23 +80,34 @@ export default function EmployeeTicketShow({ ticket, tracking_code = "" }) {
 
                             <p><strong>Employee Name:</strong> {ticket.employee_name}</p>
                             <p><strong>Department:</strong> {ticket.department}</p>
-                            <p><strong>Category:</strong> {ticket.category}</p>
-                            <p><strong>Date Opened:</strong> {formatDateTime(ticket.created_at)}</p>
-                            <p><strong>Resolved At:</strong> {ticket.resolved_at ? formatDateTime(ticket.updated_at) : "—"}</p>
+                            <p><strong>Category:</strong> {ticket.employee_category || ticket.category}</p>
+                            <p><strong>Date Opened:</strong> {formatDateTime(ticket.date_opened || ticket.created_at)}</p>
+                            <p><strong>Resolved At:</strong> {ticket.resolved_at ? formatDateTime(ticket.resolved_at) : "—"}</p>
 
                             <div>
                                 <strong>Problem Description:</strong>
-                                <p>{ticket.problem_description}</p>
+                                <p>{ticketDetails.problemDescription}</p>
                             </div>
+
+                            {ticketDetails.hasRemarks && (
+                                <div>
+                                    <strong>Remarks:</strong>
+                                    <p>{ticketDetails.remarks}</p>
+                                </div>
+                            )}
 
                             <div>
                                 <strong>Progress Update:</strong>
-                                <p>{ticket.progress_update || "No progress update yet."}</p>
+                                <p style={{ whiteSpace: "pre-wrap" }}>
+                                    {ticket.progress_update || "No progress update yet."}
+                                </p>
                             </div>
 
                             <div>
                                 <strong>Problem Solution:</strong>
-                                <p>{ticket.problem_solution || "No solution provided yet."}</p>
+                                <p style={{ whiteSpace: "pre-wrap" }}>
+                                    {ticket.problem_solution || "No solution provided yet."}
+                                </p>
                             </div>
 
                             <Link

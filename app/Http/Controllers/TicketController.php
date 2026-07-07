@@ -182,9 +182,7 @@ class TicketController extends Controller
             'problem_description' => $request->problem_description,
         ]);
 
-        return redirect()->route('employee.tickets', [
-            'tracking_code' => $request->tracking_code,
-        ]);
+        return redirect()->route('employee.tickets');
     }
 
     public function employeeShow(Ticket $ticket)
@@ -309,12 +307,12 @@ class TicketController extends Controller
     private function mapEmployeeCategoryToITCategory($employeeCategory)
     {
         return [
-            'Hardware' => 'Hardware Support & Device Setup',
-            'Software / Application' => 'Application & System Support',
-            'Account / Login' => 'Account & Access Management',
-            'File / Folder Access' => 'File, Data & Document Management',
-            'Network / Internet' => 'Network & Connectivity Support',
-            'CCTV / Security' => 'Security & Permissions',
+            'Hardware' => 'Hardware',
+            'Software / Application' => 'System / Application',
+            'Account / Login' => 'Accounts & Access',
+            'File / Folder Access' => 'Files & Shared Folder',
+            'Network / Internet' => 'Network & Internet',
+            'CCTV / Security' => 'Security',
             'Others' => 'Others',
         ][$employeeCategory] ?? 'Others';
     }
