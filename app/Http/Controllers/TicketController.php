@@ -136,6 +136,7 @@ class TicketController extends Controller
     public function employeeEdit(Request $request, Ticket $ticket)
     {
         abort_if($ticket->created_by !== null, 403);
+        abort_if($ticket->status !== 'Open', 403);
 
         abort_if(
             $ticket->tracking_code !== $request->tracking_code &&
@@ -152,6 +153,7 @@ class TicketController extends Controller
     public function employeeUpdate(Request $request, Ticket $ticket)
     {
         abort_if($ticket->created_by !== null, 403);
+        abort_if($ticket->status !== 'Open', 403);
 
         abort_if(
             $ticket->tracking_code !== $request->tracking_code &&

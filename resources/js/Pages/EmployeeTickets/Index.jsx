@@ -96,6 +96,46 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
         }
     }, [editTicket]);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            router.reload({
+                only: ["tickets"],
+                preserveScroll: true,
+                preserveState: true,
+            });
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        if (!editTicket) return;
+
+        const updatedTicket = tickets.find(
+            (ticket) => ticket.id === editTicket.id
+        );
+
+        if (!updatedTicket || updatedTicket.status !== "Open") {
+            setShowEditProblemSuggestions(false);
+            setEditTicket(null);
+            return;
+        }
+
+        setEditTicket(updatedTicket);
+    }, [tickets]);
+
+    useEffect(() => {
+        if (!selectedTicket) return;
+
+        const updatedTicket = tickets.find(
+            (ticket) => ticket.id === selectedTicket.id
+        );
+
+        if (updatedTicket) {
+            setSelectedTicket(updatedTicket);
+        }
+    }, [tickets]);
+
     const submit = (e) => {
         e.preventDefault();
 
@@ -141,7 +181,7 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
     const updateTicket = (e) => {
         e.preventDefault();
 
-        if (!editTicket) return;
+        if (!editTicket || editTicket.status !== "Open") return;
 
         put(route("employee.tickets.update", editTicket.id), {
             preserveScroll: true,
@@ -319,7 +359,7 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                     <section className="employee-ticket-monitor-card">
                         <div className="employee-ticket-monitor-header">
                             <h2>Ticket Monitoring Table</h2>
-                            <p>Enter your ticket number or employee name to check ticket history. Refresh this page to see latest updates.</p>
+                            <p>Enter your ticket number or employee name to check ticket history. Ticket status updates automatically.</p>
                         </div>
 
                         <form onSubmit={checkTicketStatus} className="employee-ticket-monitor-form">
