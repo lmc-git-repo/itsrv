@@ -2,17 +2,42 @@ import { Head, router, useForm } from "@inertiajs/react";
 import TicketSuggestions from "@/Constants/TicketSuggestions";
 import { useEffect, useState } from "react";
 
-export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "", submitted_ticket_no = "", activeEmployees = [] }) {
+export default function EmployeeTicketsIndex({
+    tickets = [],
+    tracking_code = "",
+    submitted_ticket_no = "",
+    activeEmployees = [],
+}) {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [editTicket, setEditTicket] = useState(null);
-    const [monitorTrackingCode, setMonitorTrackingCode] = useState("");
-    const [showProblemSuggestions, setShowProblemSuggestions] = useState(false);
-    const [showEditProblemSuggestions, setShowEditProblemSuggestions] = useState(false);
+    const [monitorTrackingCode, setMonitorTrackingCode] =
+        useState("");
+    const [showProblemSuggestions, setShowProblemSuggestions] =
+        useState(false);
+    const [
+        showEditProblemSuggestions,
+        setShowEditProblemSuggestions,
+    ] = useState(false);
+    const [
+        visibleSubmittedTicketNo,
+        setVisibleSubmittedTicketNo,
+    ] = useState(submitted_ticket_no || "");
 
     const formatDateTime = (date) => {
         if (!date) return "—";
 
-        return new Date(date).toLocaleString("en-US", {
+        const normalizedDate = String(date)
+            .replace(" ", "T")
+            .replace(/\.\d+Z?$/, "")
+            .replace(/Z$/, "");
+
+        const parsedDate = new Date(normalizedDate);
+
+        if (Number.isNaN(parsedDate.getTime())) {
+            return "—";
+        }
+
+        return parsedDate.toLocaleString("en-US", {
             year: "numeric",
             month: "2-digit",
             day: "2-digit",
@@ -41,14 +66,29 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
         }
 
         return {
-            problemDescription: description.substring(0, markerIndex).trim(),
-            remarks: description.substring(markerIndex + marker.length).trim() || "No remarks provided.",
+            problemDescription: description
+                .substring(0, markerIndex)
+                .trim(),
+            remarks:
+                description
+                    .substring(markerIndex + marker.length)
+                    .trim() || "No remarks provided.",
         };
     };
 
-    const selectedTicketDetails = splitProblemDescription(selectedTicket?.problem_description);
+    const selectedTicketDetails =
+        splitProblemDescription(
+            selectedTicket?.problem_description
+        );
 
-    const { data, setData, post, processing, reset, transform } = useForm({
+    const {
+        data,
+        setData,
+        post,
+        processing,
+        reset,
+        transform,
+    } = useForm({
         employee_name: "",
         department: "",
         category: "",
@@ -77,21 +117,48 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
         "New Project", "PPC", "Purchasing", "QC", "Safety", "Sales",
     ];
 
-    const categories = Object.keys(TicketSuggestions.employee);
+    const categories = Object.keys(
+        TicketSuggestions.employee
+    );
 
     useEffect(() => {
         setMonitorTrackingCode(tracking_code || "");
     }, [tracking_code]);
 
     useEffect(() => {
+        setVisibleSubmittedTicketNo(
+            submitted_ticket_no || ""
+        );
+
+        if (!submitted_ticket_no) return;
+
+        const timeout = setTimeout(() => {
+            setVisibleSubmittedTicketNo("");
+        }, 5000);
+
+        return () => clearTimeout(timeout);
+    }, [submitted_ticket_no]);
+
+    useEffect(() => {
         if (editTicket) {
             setEditData({
-                employee_name: editTicket.employee_name || "",
-                department: editTicket.department || "",
-                category: editTicket.employee_category || editTicket.category || "",
-                problem_description: editTicket.problem_description || "",
-                tracking_code: tracking_code || editTicket.tracking_code || monitorTrackingCode || "",
+                employee_name:
+                    editTicket.employee_name || "",
+                department:
+                    editTicket.department || "",
+                category:
+                    editTicket.employee_category ||
+                    editTicket.category ||
+                    "",
+                problem_description:
+                    editTicket.problem_description || "",
+                tracking_code:
+                    tracking_code ||
+                    editTicket.tracking_code ||
+                    monitorTrackingCode ||
+                    "",
             });
+
             setShowEditProblemSuggestions(false);
         }
     }, [editTicket]);
@@ -115,7 +182,10 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
             (ticket) => ticket.id === editTicket.id
         );
 
-        if (!updatedTicket || updatedTicket.status !== "Open") {
+        if (
+            !updatedTicket ||
+            updatedTicket.status !== "Open"
+        ) {
             setShowEditProblemSuggestions(false);
             setEditTicket(null);
             return;
@@ -139,11 +209,11 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
     const submit = (e) => {
         e.preventDefault();
 
-        transform((data) => ({
-            ...data,
-            problem_description: data.remarks.trim()
-                ? `${data.problem_description}\n\nRemarks: ${data.remarks}`
-                : data.problem_description,
+        transform((formData) => ({
+            ...formData,
+            problem_description: formData.remarks.trim()
+                ? `${formData.problem_description}\n\nRemarks: ${formData.remarks}`
+                : formData.problem_description,
         }));
 
         post(route("employee.tickets.store"), {
@@ -152,7 +222,9 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                 reset();
                 setShowProblemSuggestions(false);
                 setMonitorTrackingCode("");
-                localStorage.removeItem("employee_tracking_code");
+                localStorage.removeItem(
+                    "employee_tracking_code"
+                );
 
                 router.get(
                     route("employee.tickets"),
@@ -171,35 +243,53 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
 
         if (!monitorTrackingCode.trim()) return;
 
-        localStorage.setItem("employee_tracking_code", monitorTrackingCode.trim());
+        localStorage.setItem(
+            "employee_tracking_code",
+            monitorTrackingCode.trim()
+        );
 
         router.get(route("employee.tickets"), {
-            tracking_code: monitorTrackingCode.trim(),
+            tracking_code:
+                monitorTrackingCode.trim(),
         });
     };
 
     const updateTicket = (e) => {
         e.preventDefault();
 
-        if (!editTicket || editTicket.status !== "Open") return;
+        if (
+            !editTicket ||
+            editTicket.status !== "Open"
+        ) {
+            return;
+        }
 
-        put(route("employee.tickets.update", editTicket.id), {
-            preserveScroll: true,
-            onSuccess: () => {
-                setShowEditProblemSuggestions(false);
-                setEditTicket(null);
-            },
-        });
+        put(
+            route(
+                "employee.tickets.update",
+                editTicket.id
+            ),
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setShowEditProblemSuggestions(false);
+                    setEditTicket(null);
+                },
+            }
+        );
     };
 
     const statusClass = (status) => {
         switch (status) {
             case "Open":
                 return "employee-status-open";
+
             case "Ongoing":
                 return "employee-status-ongoing";
+
             case "Resolved":
                 return "employee-status-resolved";
+
             default:
                 return "employee-status-open";
         }
@@ -213,7 +303,6 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
 
             <div className="employee-ticket-page">
                 <div className="employee-ticket-container">
-
                     <section className="employee-ticket-form-card">
                         <div className="employee-ticket-header">
                             <img
@@ -223,117 +312,245 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                             />
 
                             <div>
-                                <h1>Employee Ticket Form</h1>
-                                <p>Submit your concern directly to IT Department</p>
+                                <h1>
+                                    Employee Ticket Form
+                                </h1>
+
+                                <p>
+                                    Submit your concern
+                                    directly to IT Department
+                                </p>
                             </div>
                         </div>
 
-                        {submitted_ticket_no && (
+                        {visibleSubmittedTicketNo && (
                             <div className="employee-ticket-alert">
-                                Your ticket was submitted successfully. Tracking Code: <strong>{submitted_ticket_no}</strong>
+                                Your ticket was submitted
+                                successfully. Tracking Code:{" "}
+                                <strong>
+                                    {
+                                        visibleSubmittedTicketNo
+                                    }
+                                </strong>
                             </div>
                         )}
 
-                        <form onSubmit={submit} className="employee-ticket-form">
+                        <form
+                            onSubmit={submit}
+                            className="employee-ticket-form"
+                        >
                             <div>
                                 <label>Employee Name</label>
+
                                 <select
                                     value={data.employee_name}
-                                    onFocus={() => setShowProblemSuggestions(false)}
+                                    onFocus={() =>
+                                        setShowProblemSuggestions(
+                                            false
+                                        )
+                                    }
                                     onChange={(e) => {
-                                        const selectedEmployee = activeEmployees.find(
-                                            (employee) => employee.name === e.target.value
-                                        );
+                                        const selectedEmployee =
+                                            activeEmployees.find(
+                                                (
+                                                    employee
+                                                ) =>
+                                                    employee.name ===
+                                                    e.target
+                                                        .value
+                                            );
 
                                         setData({
                                             ...data,
-                                            employee_name: e.target.value,
-                                            department: selectedEmployee?.department || "",
+                                            employee_name:
+                                                e.target.value,
+                                            department:
+                                                selectedEmployee?.department ||
+                                                "",
                                         });
                                     }}
                                     required
                                 >
-                                    <option value="">Select Employee Name</option>
-                                    {activeEmployees.map((employee) => (
-                                        <option key={employee.id} value={employee.name}>
-                                            {employee.name}
-                                        </option>
-                                    ))}
+                                    <option value="">
+                                        Select Employee Name
+                                    </option>
+
+                                    {activeEmployees.map(
+                                        (employee) => (
+                                            <option
+                                                key={
+                                                    employee.id
+                                                }
+                                                value={
+                                                    employee.name
+                                                }
+                                            >
+                                                {
+                                                    employee.name
+                                                }
+                                            </option>
+                                        )
+                                    )}
                                 </select>
 
-                                {activeEmployees.length === 0 && (
+                                {activeEmployees.length ===
+                                    0 && (
                                     <div className="employee-ticket-validation-message">
-                                        You cannot submit a ticket because there are no active employees registered. Please contact IT Department for assistance.
+                                        You cannot submit a
+                                        ticket because there
+                                        are no active employees
+                                        registered. Please
+                                        contact IT Department
+                                        for assistance.
                                     </div>
                                 )}
                             </div>
 
                             <div>
                                 <label>Department</label>
+
                                 <select
                                     value={data.department}
-                                    onFocus={() => setShowProblemSuggestions(false)}
-                                    onChange={(e) => setData("department", e.target.value)}
+                                    onFocus={() =>
+                                        setShowProblemSuggestions(
+                                            false
+                                        )
+                                    }
+                                    onChange={(e) =>
+                                        setData(
+                                            "department",
+                                            e.target.value
+                                        )
+                                    }
                                     required
                                 >
-                                    <option value="">Select Department</option>
-                                    {departments.map((department) => (
-                                        <option key={department} value={department}>
-                                            {department}
-                                        </option>
-                                    ))}
+                                    <option value="">
+                                        Select Department
+                                    </option>
+
+                                    {departments.map(
+                                        (department) => (
+                                            <option
+                                                key={
+                                                    department
+                                                }
+                                                value={
+                                                    department
+                                                }
+                                            >
+                                                {
+                                                    department
+                                                }
+                                            </option>
+                                        )
+                                    )}
                                 </select>
                             </div>
 
                             <div>
                                 <label>Category</label>
+
                                 <select
                                     value={data.category}
-                                    onFocus={() => setShowProblemSuggestions(false)}
+                                    onFocus={() =>
+                                        setShowProblemSuggestions(
+                                            false
+                                        )
+                                    }
                                     onChange={(e) => {
-                                        setData("category", e.target.value);
-                                        setShowProblemSuggestions(false);
+                                        setData(
+                                            "category",
+                                            e.target.value
+                                        );
+                                        setShowProblemSuggestions(
+                                            false
+                                        );
                                     }}
                                     required
                                 >
-                                    <option value="">Select Category</option>
-                                    {categories.map((category) => (
-                                        <option key={category} value={category}>
-                                            {category}
-                                        </option>
-                                    ))}
+                                    <option value="">
+                                        Select Category
+                                    </option>
+
+                                    {categories.map(
+                                        (category) => (
+                                            <option
+                                                key={category}
+                                                value={category}
+                                            >
+                                                {category}
+                                            </option>
+                                        )
+                                    )}
                                 </select>
                             </div>
 
                             <div>
-                                <label>Problem Description</label>
+                                <label>
+                                    Problem Description
+                                </label>
 
-                                {showProblemSuggestions && data.category && TicketSuggestions.employee[data.category]?.length > 0 && (
-                                    <div className="mt-2 mb-3 space-y-2">
-                                        {TicketSuggestions.employee[data.category].map((suggestion) => (
-                                            <button
-                                                key={suggestion}
-                                                type="button"
-                                                className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
-                                                onMouseDown={(e) => e.preventDefault()}
-                                                onClick={() => {
-                                                    setData("problem_description", suggestion);
-                                                    setShowProblemSuggestions(false);
-                                                }}
-                                            >
-                                                {suggestion}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
+                                {showProblemSuggestions &&
+                                    data.category &&
+                                    TicketSuggestions
+                                        .employee[
+                                        data.category
+                                    ]?.length > 0 && (
+                                        <div className="mt-2 mb-3 space-y-2">
+                                            {TicketSuggestions.employee[
+                                                data.category
+                                            ].map(
+                                                (
+                                                    suggestion
+                                                ) => (
+                                                    <button
+                                                        key={
+                                                            suggestion
+                                                        }
+                                                        type="button"
+                                                        className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
+                                                        onMouseDown={(
+                                                            e
+                                                        ) =>
+                                                            e.preventDefault()
+                                                        }
+                                                        onClick={() => {
+                                                            setData(
+                                                                "problem_description",
+                                                                suggestion
+                                                            );
+                                                            setShowProblemSuggestions(
+                                                                false
+                                                            );
+                                                        }}
+                                                    >
+                                                        {
+                                                            suggestion
+                                                        }
+                                                    </button>
+                                                )
+                                            )}
+                                        </div>
+                                    )}
 
                                 <textarea
                                     rows="6"
-                                    value={data.problem_description}
-                                    onFocus={() => setShowProblemSuggestions(true)}
+                                    value={
+                                        data.problem_description
+                                    }
+                                    onFocus={() =>
+                                        setShowProblemSuggestions(
+                                            true
+                                        )
+                                    }
                                     onChange={(e) => {
-                                        setData("problem_description", e.target.value);
-                                        setShowProblemSuggestions(false);
+                                        setData(
+                                            "problem_description",
+                                            e.target.value
+                                        );
+                                        setShowProblemSuggestions(
+                                            false
+                                        );
                                     }}
                                     required
                                 />
@@ -341,16 +558,32 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
 
                             <div>
                                 <label>Remarks</label>
+
                                 <textarea
                                     rows="3"
                                     value={data.remarks}
-                                    onFocus={() => setShowProblemSuggestions(false)}
-                                    onChange={(e) => setData("remarks", e.target.value)}
+                                    onFocus={() =>
+                                        setShowProblemSuggestions(
+                                            false
+                                        )
+                                    }
+                                    onChange={(e) =>
+                                        setData(
+                                            "remarks",
+                                            e.target.value
+                                        )
+                                    }
                                     placeholder="Add more details if needed..."
                                 />
                             </div>
 
-                            <button type="submit" disabled={processing || !data.employee_name}>
+                            <button
+                                type="submit"
+                                disabled={
+                                    processing ||
+                                    !data.employee_name
+                                }
+                            >
                                 Submit Ticket
                             </button>
                         </form>
@@ -358,25 +591,51 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
 
                     <section className="employee-ticket-monitor-card">
                         <div className="employee-ticket-monitor-header">
-                            <h2>Ticket Monitoring Table</h2>
-                            <p>Enter your ticket number or employee name to check ticket history. Ticket status updates automatically.</p>
+                            <h2>
+                                Ticket Monitoring Table
+                            </h2>
+
+                            <p>
+                                Enter your ticket number or
+                                employee name to check ticket
+                                history. Ticket status updates
+                                automatically.
+                            </p>
                         </div>
 
-                        <form onSubmit={checkTicketStatus} className="employee-ticket-monitor-form">
+                        <form
+                            onSubmit={checkTicketStatus}
+                            className="employee-ticket-monitor-form"
+                        >
                             <div>
-                                <label>Check Ticket Status</label>
+                                <label>
+                                    Check Ticket Status
+                                </label>
+
                                 <input
                                     type="text"
-                                    value={monitorTrackingCode}
+                                    value={
+                                        monitorTrackingCode
+                                    }
                                     onChange={(e) => {
-                                        const value = e.target.value.toUpperCase();
-                                        setMonitorTrackingCode(value);
+                                        const value =
+                                            e.target.value.toUpperCase();
+
+                                        setMonitorTrackingCode(
+                                            value
+                                        );
 
                                         if (!value.trim()) {
-                                            router.get(route("employee.tickets"), {}, {
-                                                preserveScroll: true,
-                                                preserveState: false,
-                                            });
+                                            router.get(
+                                                route(
+                                                    "employee.tickets"
+                                                ),
+                                                {},
+                                                {
+                                                    preserveScroll: true,
+                                                    preserveState: false,
+                                                }
+                                            );
                                         }
                                     }}
                                     placeholder="Enter ticket # or employee name"
@@ -396,34 +655,64 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                             )}
 
                             {visibleTickets.map((ticket) => (
-                                <div key={ticket.id} className="employee-ticket-item">
+                                <div
+                                    key={ticket.id}
+                                    className="employee-ticket-item"
+                                >
                                     <div className="employee-ticket-item-top">
-                                        <strong>{ticket.ticket_no}</strong>
-                                        <span className={statusClass(ticket.status)}>
+                                        <strong>
+                                            {
+                                                ticket.ticket_no
+                                            }
+                                        </strong>
+
+                                        <span
+                                            className={statusClass(
+                                                ticket.status
+                                            )}
+                                        >
                                             {ticket.status}
                                         </span>
                                     </div>
 
-                                    <p>{ticket.problem_description}</p>
+                                    <p>
+                                        {
+                                            ticket.problem_description
+                                        }
+                                    </p>
 
                                     <small>
-                                        Employee: {ticket.employee_name || "—"} | Department: {ticket.department || "—"}
+                                        Employee:{" "}
+                                        {ticket.employee_name ||
+                                            "—"}{" "}
+                                        | Department:{" "}
+                                        {ticket.department ||
+                                            "—"}
                                     </small>
 
                                     <div className="employee-ticket-actions">
                                         <button
                                             type="button"
                                             className="employee-ticket-view-btn"
-                                            onClick={() => setSelectedTicket(ticket)}
+                                            onClick={() =>
+                                                setSelectedTicket(
+                                                    ticket
+                                                )
+                                            }
                                         >
                                             View Details
                                         </button>
 
-                                        {ticket.status === "Open" && (
+                                        {ticket.status ===
+                                            "Open" && (
                                             <button
                                                 type="button"
                                                 className="employee-ticket-edit-btn"
-                                                onClick={() => setEditTicket(ticket)}
+                                                onClick={() =>
+                                                    setEditTicket(
+                                                        ticket
+                                                    )
+                                                }
                                             >
                                                 ✏️ Edit
                                             </button>
@@ -433,7 +722,6 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                             ))}
                         </div>
                     </section>
-
                 </div>
 
                 <footer
@@ -451,7 +739,10 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                         textAlign: "center",
                     }}
                 >
-                    If your ticket concern submitted through this form is not addressed immediately, please call local 41 or email itd@lagunametts.com through Outlook.
+                    If your ticket concern submitted through
+                    this form is not addressed immediately,
+                    please call local 41 or email
+                    itd@lagunametts.com through Outlook.
                 </footer>
             </div>
 
@@ -459,14 +750,18 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div
                         className="absolute inset-0 bg-black/60"
-                        onClick={() => setSelectedTicket(null)}
+                        onClick={() =>
+                            setSelectedTicket(null)
+                        }
                     />
 
                     <div className="relative bg-white rounded-xl w-full max-w-lg p-6 shadow-xl z-10 text-[#101E33] max-h-[90vh] overflow-y-auto">
                         <button
                             type="button"
                             className="absolute top-4 right-4 text-gray-500 hover:text-black"
-                            onClick={() => setSelectedTicket(null)}
+                            onClick={() =>
+                                setSelectedTicket(null)
+                            }
                         >
                             ✕
                         </button>
@@ -476,47 +771,122 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                         </h2>
 
                         <div className="space-y-3 text-base text-[#101E33]">
-                            <p><strong>Ticket No:</strong> {selectedTicket.ticket_no}</p>
-                            <p><strong>Employee Name:</strong> {selectedTicket.employee_name}</p>
-                            <p><strong>Department:</strong> {selectedTicket.department}</p>
-                            <p><strong>Category:</strong> {selectedTicket.category}</p>
-                            <p><strong>Status:</strong> {selectedTicket.status}</p>
-                            <p><strong>Date Opened:</strong> {formatDateTime(selectedTicket.created_at || selectedTicket.date_opened)}</p>
-                            <p><strong>Resolved At:</strong> {selectedTicket.resolved_at ? formatDateTime(selectedTicket.updated_at || selectedTicket.resolved_at) : "—"}</p>
+                            <p>
+                                <strong>
+                                    Ticket No:
+                                </strong>{" "}
+                                {
+                                    selectedTicket.ticket_no
+                                }
+                            </p>
+
+                            <p>
+                                <strong>
+                                    Employee Name:
+                                </strong>{" "}
+                                {
+                                    selectedTicket.employee_name
+                                }
+                            </p>
+
+                            <p>
+                                <strong>
+                                    Department:
+                                </strong>{" "}
+                                {
+                                    selectedTicket.department
+                                }
+                            </p>
+
+                            <p>
+                                <strong>
+                                    Category:
+                                </strong>{" "}
+                                {
+                                    selectedTicket.category
+                                }
+                            </p>
+
+                            <p>
+                                <strong>Status:</strong>{" "}
+                                {selectedTicket.status}
+                            </p>
+
+                            <p>
+                                <strong>
+                                    Date Opened:
+                                </strong>{" "}
+                                {formatDateTime(
+                                    selectedTicket.date_opened
+                                )}
+                            </p>
+
+                            <p>
+                                <strong>
+                                    Resolved At:
+                                </strong>{" "}
+                                {selectedTicket.resolved_at
+                                    ? formatDateTime(
+                                          selectedTicket.resolved_at
+                                      )
+                                    : "—"}
+                            </p>
 
                             <div>
-                                <strong>Problem Description:</strong>
+                                <strong>
+                                    Problem Description:
+                                </strong>
+
                                 <textarea
                                     readOnly
                                     className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base text-[#101E33]"
-                                    value={selectedTicketDetails.problemDescription}
+                                    value={
+                                        selectedTicketDetails.problemDescription
+                                    }
                                 />
                             </div>
 
                             <div>
-                                <strong>Remarks:</strong>
+                                <strong>
+                                    Remarks:
+                                </strong>
+
                                 <textarea
                                     readOnly
                                     className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base text-[#101E33]"
-                                    value={selectedTicketDetails.remarks}
+                                    value={
+                                        selectedTicketDetails.remarks
+                                    }
                                 />
                             </div>
 
                             <div>
-                                <strong>Progress Update:</strong>
+                                <strong>
+                                    Progress Update:
+                                </strong>
+
                                 <textarea
                                     readOnly
                                     className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base text-[#101E33]"
-                                    value={selectedTicket.progress_update || "No progress update yet."}
+                                    value={
+                                        selectedTicket.progress_update ||
+                                        "No progress update yet."
+                                    }
                                 />
                             </div>
 
                             <div>
-                                <strong>Problem Solution:</strong>
+                                <strong>
+                                    Problem Solution:
+                                </strong>
+
                                 <textarea
                                     readOnly
                                     className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base text-[#101E33]"
-                                    value={selectedTicket.problem_solution || "No solution provided yet."}
+                                    value={
+                                        selectedTicket.problem_solution ||
+                                        "No solution provided yet."
+                                    }
                                 />
                             </div>
                         </div>
@@ -528,14 +898,18 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div
                         className="absolute inset-0 bg-black/60"
-                        onClick={() => setEditTicket(null)}
+                        onClick={() =>
+                            setEditTicket(null)
+                        }
                     />
 
                     <div className="relative bg-white rounded-xl w-full max-w-lg p-6 shadow-xl z-10 text-[#101E33] max-h-[90vh] overflow-y-auto">
                         <button
                             type="button"
                             className="absolute top-4 right-4 text-gray-500 hover:text-black"
-                            onClick={() => setEditTicket(null)}
+                            onClick={() =>
+                                setEditTicket(null)
+                            }
                         >
                             ✕
                         </button>
@@ -544,17 +918,32 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                             Edit Ticket
                         </h2>
 
-                        <form onSubmit={updateTicket} className="space-y-4 text-sm text-[#101E33]">
+                        <form
+                            onSubmit={updateTicket}
+                            className="space-y-4 text-sm text-[#101E33]"
+                        >
                             <div>
                                 <label className="block mb-1 font-semibold text-[#101E33]">
                                     Employee Name
                                 </label>
+
                                 <input
                                     type="text"
                                     className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
-                                    value={editData.employee_name}
-                                    onFocus={() => setShowEditProblemSuggestions(false)}
-                                    onChange={(e) => setEditData("employee_name", e.target.value)}
+                                    value={
+                                        editData.employee_name
+                                    }
+                                    onFocus={() =>
+                                        setShowEditProblemSuggestions(
+                                            false
+                                        )
+                                    }
+                                    onChange={(e) =>
+                                        setEditData(
+                                            "employee_name",
+                                            e.target.value
+                                        )
+                                    }
                                     required
                                 />
                             </div>
@@ -563,19 +952,45 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                 <label className="block mb-1 font-semibold text-[#101E33]">
                                     Department
                                 </label>
+
                                 <select
                                     className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
-                                    value={editData.department}
-                                    onFocus={() => setShowEditProblemSuggestions(false)}
-                                    onChange={(e) => setEditData("department", e.target.value)}
+                                    value={
+                                        editData.department
+                                    }
+                                    onFocus={() =>
+                                        setShowEditProblemSuggestions(
+                                            false
+                                        )
+                                    }
+                                    onChange={(e) =>
+                                        setEditData(
+                                            "department",
+                                            e.target.value
+                                        )
+                                    }
                                     required
                                 >
-                                    <option value="">Select Department</option>
-                                    {departments.map((department) => (
-                                        <option key={department} value={department}>
-                                            {department}
-                                        </option>
-                                    ))}
+                                    <option value="">
+                                        Select Department
+                                    </option>
+
+                                    {departments.map(
+                                        (department) => (
+                                            <option
+                                                key={
+                                                    department
+                                                }
+                                                value={
+                                                    department
+                                                }
+                                            >
+                                                {
+                                                    department
+                                                }
+                                            </option>
+                                        )
+                                    )}
                                 </select>
                             </div>
 
@@ -583,22 +998,48 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                 <label className="block mb-1 font-semibold text-[#101E33]">
                                     Category
                                 </label>
+
                                 <select
                                     className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
-                                    value={editData.category}
-                                    onFocus={() => setShowEditProblemSuggestions(false)}
+                                    value={
+                                        editData.category
+                                    }
+                                    onFocus={() =>
+                                        setShowEditProblemSuggestions(
+                                            false
+                                        )
+                                    }
                                     onChange={(e) => {
-                                        setEditData("category", e.target.value);
-                                        setShowEditProblemSuggestions(false);
+                                        setEditData(
+                                            "category",
+                                            e.target.value
+                                        );
+                                        setShowEditProblemSuggestions(
+                                            false
+                                        );
                                     }}
                                     required
                                 >
-                                    <option value="">Select Category</option>
-                                    {categories.map((category) => (
-                                        <option key={category} value={category}>
-                                            {category}
-                                        </option>
-                                    ))}
+                                    <option value="">
+                                        Select Category
+                                    </option>
+
+                                    {categories.map(
+                                        (category) => (
+                                            <option
+                                                key={
+                                                    category
+                                                }
+                                                value={
+                                                    category
+                                                }
+                                            >
+                                                {
+                                                    category
+                                                }
+                                            </option>
+                                        )
+                                    )}
                                 </select>
                             </div>
 
@@ -607,33 +1048,68 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                                     Problem Description
                                 </label>
 
-                                {showEditProblemSuggestions && editData.category && TicketSuggestions.employee[editData.category]?.length > 0 && (
-                                    <div className="mt-2 mb-3 space-y-2">
-                                        {TicketSuggestions.employee[editData.category].map((suggestion) => (
-                                            <button
-                                                key={suggestion}
-                                                type="button"
-                                                className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
-                                                onMouseDown={(e) => e.preventDefault()}
-                                                onClick={() => {
-                                                    setEditData("problem_description", suggestion);
-                                                    setShowEditProblemSuggestions(false);
-                                                }}
-                                            >
-                                                {suggestion}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
+                                {showEditProblemSuggestions &&
+                                    editData.category &&
+                                    TicketSuggestions
+                                        .employee[
+                                        editData.category
+                                    ]?.length > 0 && (
+                                        <div className="mt-2 mb-3 space-y-2">
+                                            {TicketSuggestions.employee[
+                                                editData.category
+                                            ].map(
+                                                (
+                                                    suggestion
+                                                ) => (
+                                                    <button
+                                                        key={
+                                                            suggestion
+                                                        }
+                                                        type="button"
+                                                        className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
+                                                        onMouseDown={(
+                                                            e
+                                                        ) =>
+                                                            e.preventDefault()
+                                                        }
+                                                        onClick={() => {
+                                                            setEditData(
+                                                                "problem_description",
+                                                                suggestion
+                                                            );
+                                                            setShowEditProblemSuggestions(
+                                                                false
+                                                            );
+                                                        }}
+                                                    >
+                                                        {
+                                                            suggestion
+                                                        }
+                                                    </button>
+                                                )
+                                            )}
+                                        </div>
+                                    )}
 
                                 <textarea
                                     rows="5"
                                     className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
-                                    value={editData.problem_description}
-                                    onFocus={() => setShowEditProblemSuggestions(true)}
+                                    value={
+                                        editData.problem_description
+                                    }
+                                    onFocus={() =>
+                                        setShowEditProblemSuggestions(
+                                            true
+                                        )
+                                    }
                                     onChange={(e) => {
-                                        setEditData("problem_description", e.target.value);
-                                        setShowEditProblemSuggestions(false);
+                                        setEditData(
+                                            "problem_description",
+                                            e.target.value
+                                        );
+                                        setShowEditProblemSuggestions(
+                                            false
+                                        );
                                     }}
                                     required
                                 />
@@ -642,7 +1118,9 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
                             <div className="flex justify-center gap-4 pt-4">
                                 <button
                                     type="button"
-                                    onClick={() => setEditTicket(null)}
+                                    onClick={() =>
+                                        setEditTicket(null)
+                                    }
                                     className="px-6 py-2 rounded bg-gray-400 hover:bg-gray-500 text-white font-semibold"
                                 >
                                     Cancel
@@ -650,7 +1128,9 @@ export default function EmployeeTicketsIndex({ tickets = [], tracking_code = "",
 
                                 <button
                                     type="submit"
-                                    disabled={editProcessing}
+                                    disabled={
+                                        editProcessing
+                                    }
                                     className="px-6 py-2 rounded bg-green-500 hover:bg-green-600 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     Save Changes

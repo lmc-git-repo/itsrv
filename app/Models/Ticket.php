@@ -27,16 +27,24 @@ class Ticket extends Model
 
     public function creator()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(
+            User::class,
+            'created_by'
+        );
     }
 
     public function resolver()
     {
-        return $this->belongsTo(User::class, 'resolved_by');
+        return $this->belongsTo(
+            User::class,
+            'resolved_by'
+        );
     }
 
-     public function solutions()
+    public function solutions()
     {
-        return $this->hasMany(TicketSolution::class)->latest();
+        return $this->hasMany(
+            TicketSolution::class
+        )->latest();
     }
 }

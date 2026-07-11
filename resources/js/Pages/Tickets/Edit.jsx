@@ -4,7 +4,8 @@ import { useForm, usePage } from "@inertiajs/react";
 
 export default function EditTicketModal({ show, ticket, onClose }) {
     const { users = [] } = usePage().props;
-    const [showProblemSuggestions, setShowProblemSuggestions] = useState(false);
+    const [showProblemSuggestions, setShowProblemSuggestions] =
+        useState(false);
 
     const superadminUsers = useMemo(() => {
         return Array.isArray(users)
@@ -24,14 +25,8 @@ export default function EditTicketModal({ show, ticket, onClose }) {
 
     const formatDateInput = (date) => {
         if (!date) return "";
-        return String(date).substring(0, 10);
-    };
 
-    const withCurrentTime = (date) => {
-        if (!date) return "";
-        const now = new Date();
-        const time = now.toTimeString().slice(0, 8);
-        return `${date} ${time}`;
+        return String(date).substring(0, 10);
     };
 
     const splitProblemDescription = (description) => {
@@ -53,7 +48,9 @@ export default function EditTicketModal({ show, ticket, onClose }) {
         }
 
         return {
-            problemDescription: description.substring(0, markerIndex).trim(),
+            problemDescription: description
+                .substring(0, markerIndex)
+                .trim(),
             remarksText: description.substring(markerIndex).trim(),
         };
     };
@@ -61,24 +58,39 @@ export default function EditTicketModal({ show, ticket, onClose }) {
     const original = useMemo(() => {
         if (!ticket) return null;
 
-        const ticketDetails = splitProblemDescription(ticket.problem_description || "");
+        const ticketDetails = splitProblemDescription(
+            ticket.problem_description || ""
+        );
 
         return {
             employee_name: ticket.employee_name || "",
             department: ticket.department || "",
             category: ticket.category || "",
-            problem_description: ticketDetails.problemDescription || "",
+            problem_description:
+                ticketDetails.problemDescription || "",
             remarks_text: ticketDetails.remarksText || "",
             status: ticket.status || "",
             problem_solution: ticket.problem_solution || "",
             progress_update: ticket.progress_update || "",
-            resolved_by: ticket.resolved_by ? String(ticket.resolved_by) : "",
-            date_opened: formatDateInput(ticket.date_opened || ""),
-            resolved_at: formatDateInput(ticket.resolved_at || ""),
+            resolved_by: ticket.resolved_by
+                ? String(ticket.resolved_by)
+                : "",
+            date_opened: formatDateInput(
+                ticket.date_opened || ""
+            ),
+            resolved_at: formatDateInput(
+                ticket.resolved_at || ""
+            ),
         };
     }, [ticket]);
 
-    const { data, setData, put, processing, transform } = useForm(
+    const {
+        data,
+        setData,
+        put,
+        processing,
+        transform,
+    } = useForm(
         original || {
             employee_name: "",
             department: "",
@@ -125,16 +137,11 @@ export default function EditTicketModal({ show, ticket, onClose }) {
 
         if (!hasChanges || !ticket) return;
 
-        transform((data) => ({
-            ...data,
-            problem_description: data.remarks_text
-                ? `${data.problem_description}\n\n${data.remarks_text}`
-                : data.problem_description,
-            date_opened: withCurrentTime(data.date_opened),
-            resolved_at:
-                data.status === "Resolved" && data.resolved_at
-                    ? withCurrentTime(data.resolved_at)
-                    : "",
+        transform((formData) => ({
+            ...formData,
+            problem_description: formData.remarks_text
+                ? `${formData.problem_description}\n\n${formData.remarks_text}`
+                : formData.problem_description,
         }));
 
         put(route("tickets.update", ticket.id), {
@@ -152,7 +159,10 @@ export default function EditTicketModal({ show, ticket, onClose }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+            <div
+                className="absolute inset-0 bg-black/60"
+                onClick={onClose}
+            />
 
             <form
                 onSubmit={handleSubmit}
@@ -176,9 +186,14 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         <input
                             className="w-full rounded border px-3 py-2"
                             value={data.employee_name}
-                            onFocus={() => setShowProblemSuggestions(false)}
+                            onFocus={() =>
+                                setShowProblemSuggestions(false)
+                            }
                             onChange={(e) =>
-                                setData("employee_name", e.target.value)
+                                setData(
+                                    "employee_name",
+                                    e.target.value
+                                )
                             }
                         />
                     </div>
@@ -188,15 +203,24 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         <select
                             className="w-full rounded border px-3 py-2"
                             value={data.department}
-                            onFocus={() => setShowProblemSuggestions(false)}
+                            onFocus={() =>
+                                setShowProblemSuggestions(false)
+                            }
                             onChange={(e) =>
-                                setData("department", e.target.value)
+                                setData(
+                                    "department",
+                                    e.target.value
+                                )
                             }
                         >
                             <option value="">Select Department</option>
-                            {departments.map((d) => (
-                                <option key={d} value={d}>
-                                    {d}
+
+                            {departments.map((department) => (
+                                <option
+                                    key={department}
+                                    value={department}
+                                >
+                                    {department}
                                 </option>
                             ))}
                         </select>
@@ -207,16 +231,25 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         <select
                             className="w-full rounded border px-3 py-2"
                             value={data.category}
-                            onFocus={() => setShowProblemSuggestions(false)}
+                            onFocus={() =>
+                                setShowProblemSuggestions(false)
+                            }
                             onChange={(e) => {
-                                setData("category", e.target.value);
+                                setData(
+                                    "category",
+                                    e.target.value
+                                );
                                 setShowProblemSuggestions(false);
                             }}
                         >
                             <option value="">Select Category</option>
-                            {categories.map((c) => (
-                                <option key={c} value={c}>
-                                    {c}
+
+                            {categories.map((category) => (
+                                <option
+                                    key={category}
+                                    value={category}
+                                >
+                                    {category}
                                 </option>
                             ))}
                         </select>
@@ -229,31 +262,48 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                             rows="3"
                             className="w-full rounded border px-3 py-2"
                             value={data.problem_description}
-                            onFocus={() => setShowProblemSuggestions(true)}
+                            onFocus={() =>
+                                setShowProblemSuggestions(true)
+                            }
                             onChange={(e) => {
-                                setData("problem_description", e.target.value);
+                                setData(
+                                    "problem_description",
+                                    e.target.value
+                                );
                                 setShowProblemSuggestions(false);
                             }}
                         />
 
-                        {showProblemSuggestions && data.category && TicketSuggestions.superadmin[data.category]?.length > 0 && (
-                            <div className="mt-2 space-y-2">
-                                {TicketSuggestions.superadmin[data.category].map((suggestion) => (
-                                    <button
-                                        key={suggestion}
-                                        type="button"
-                                        className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
-                                        onMouseDown={(e) => e.preventDefault()}
-                                        onClick={() => {
-                                            setData("problem_description", suggestion);
-                                            setShowProblemSuggestions(false);
-                                        }}
-                                    >
-                                        {suggestion}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                        {showProblemSuggestions &&
+                            data.category &&
+                            TicketSuggestions.superadmin[data.category]
+                                ?.length > 0 && (
+                                <div className="mt-2 space-y-2">
+                                    {TicketSuggestions.superadmin[
+                                        data.category
+                                    ].map((suggestion) => (
+                                        <button
+                                            key={suggestion}
+                                            type="button"
+                                            className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
+                                            onMouseDown={(e) =>
+                                                e.preventDefault()
+                                            }
+                                            onClick={() => {
+                                                setData(
+                                                    "problem_description",
+                                                    suggestion
+                                                );
+                                                setShowProblemSuggestions(
+                                                    false
+                                                );
+                                            }}
+                                        >
+                                            {suggestion}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                     </div>
 
                     <div>
@@ -261,7 +311,9 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         <select
                             className="w-full rounded border px-3 py-2"
                             value={data.status}
-                            onFocus={() => setShowProblemSuggestions(false)}
+                            onFocus={() =>
+                                setShowProblemSuggestions(false)
+                            }
                             onChange={(e) =>
                                 setData("status", e.target.value)
                             }
@@ -279,9 +331,14 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                                 className="w-full rounded border px-3 py-2"
                                 placeholder="Enter progress update"
                                 value={data.progress_update || ""}
-                                onFocus={() => setShowProblemSuggestions(false)}
+                                onFocus={() =>
+                                    setShowProblemSuggestions(false)
+                                }
                                 onChange={(e) =>
-                                    setData("progress_update", e.target.value)
+                                    setData(
+                                        "progress_update",
+                                        e.target.value
+                                    )
                                 }
                             />
                         </div>
@@ -293,9 +350,14 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                             type="date"
                             className="w-full rounded border px-3 py-2"
                             value={data.date_opened}
-                            onFocus={() => setShowProblemSuggestions(false)}
+                            onFocus={() =>
+                                setShowProblemSuggestions(false)
+                            }
                             onChange={(e) =>
-                                setData("date_opened", e.target.value)
+                                setData(
+                                    "date_opened",
+                                    e.target.value
+                                )
                             }
                         />
                     </div>
@@ -307,9 +369,14 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                                 type="date"
                                 className="w-full rounded border px-3 py-2"
                                 value={data.resolved_at}
-                                onFocus={() => setShowProblemSuggestions(false)}
+                                onFocus={() =>
+                                    setShowProblemSuggestions(false)
+                                }
                                 onChange={(e) =>
-                                    setData("resolved_at", e.target.value)
+                                    setData(
+                                        "resolved_at",
+                                        e.target.value
+                                    )
                                 }
                             />
                         </div>
@@ -322,9 +389,14 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                                 className="w-full rounded border px-3 py-2"
                                 placeholder="Enter solution"
                                 value={data.problem_solution || ""}
-                                onFocus={() => setShowProblemSuggestions(false)}
+                                onFocus={() =>
+                                    setShowProblemSuggestions(false)
+                                }
                                 onChange={(e) =>
-                                    setData("problem_solution", e.target.value)
+                                    setData(
+                                        "problem_solution",
+                                        e.target.value
+                                    )
                                 }
                             />
                         </div>
@@ -336,15 +408,24 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                             <select
                                 className="w-full rounded border px-3 py-2 text-[#101E33]"
                                 value={data.resolved_by}
-                                onFocus={() => setShowProblemSuggestions(false)}
+                                onFocus={() =>
+                                    setShowProblemSuggestions(false)
+                                }
                                 onChange={(e) =>
-                                    setData("resolved_by", e.target.value)
+                                    setData(
+                                        "resolved_by",
+                                        e.target.value
+                                    )
                                 }
                             >
                                 <option value="">Select User</option>
-                                {users.map((u) => (
-                                    <option key={u.id} value={String(u.id)}>
-                                        {u.name}
+
+                                {users.map((user) => (
+                                    <option
+                                        key={user.id}
+                                        value={String(user.id)}
+                                    >
+                                        {user.name}
                                     </option>
                                 ))}
                             </select>

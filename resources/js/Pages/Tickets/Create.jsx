@@ -5,7 +5,7 @@ import TicketSuggestions from "@/Constants/TicketSuggestions";
 export default function CreateTicketModal({ show, onClose }) {
     const [showProblemSuggestions, setShowProblemSuggestions] = useState(false);
 
-    const { data, setData, post, processing, reset, transform } = useForm({
+    const { data, setData, post, processing, reset } = useForm({
         employee_name: "",
         department: "",
         category: "",
@@ -27,13 +27,6 @@ export default function CreateTicketModal({ show, onClose }) {
 
     const statuses = ["Open", "Ongoing", "Resolved"];
 
-    const withCurrentTime = (date) => {
-        if (!date) return "";
-        const now = new Date();
-        const time = now.toTimeString().slice(0, 8);
-        return `${date} ${time}`;
-    };
-
     const isValid =
         data.employee_name.trim() &&
         data.department &&
@@ -44,11 +37,6 @@ export default function CreateTicketModal({ show, onClose }) {
 
     const submit = () => {
         if (!isValid) return;
-
-        transform((data) => ({
-            ...data,
-            date_opened: withCurrentTime(data.date_opened),
-        }));
 
         post(route("tickets.store"), {
             preserveScroll: true,
@@ -88,7 +76,9 @@ export default function CreateTicketModal({ show, onClose }) {
                             className="w-full rounded border px-3 py-2"
                             value={data.employee_name}
                             onFocus={() => setShowProblemSuggestions(false)}
-                            onChange={e => setData("employee_name", e.target.value)}
+                            onChange={(e) =>
+                                setData("employee_name", e.target.value)
+                            }
                         />
                     </div>
 
@@ -99,11 +89,19 @@ export default function CreateTicketModal({ show, onClose }) {
                             className="w-full rounded border px-3 py-2"
                             value={data.department}
                             onFocus={() => setShowProblemSuggestions(false)}
-                            onChange={e => setData("department", e.target.value)}
+                            onChange={(e) =>
+                                setData("department", e.target.value)
+                            }
                         >
                             <option value="">Select Department</option>
-                            {departments.map(d => (
-                                <option key={d} value={d}>{d}</option>
+
+                            {departments.map((department) => (
+                                <option
+                                    key={department}
+                                    value={department}
+                                >
+                                    {department}
+                                </option>
                             ))}
                         </select>
                     </div>
@@ -115,14 +113,17 @@ export default function CreateTicketModal({ show, onClose }) {
                             className="w-full rounded border px-3 py-2"
                             value={data.category}
                             onFocus={() => setShowProblemSuggestions(false)}
-                            onChange={e => {
+                            onChange={(e) => {
                                 setData("category", e.target.value);
                                 setShowProblemSuggestions(false);
                             }}
                         >
                             <option value="">Select Category</option>
-                            {categories.map(c => (
-                                <option key={c} value={c}>{c}</option>
+
+                            {categories.map((category) => (
+                                <option key={category} value={category}>
+                                    {category}
+                                </option>
                             ))}
                         </select>
                     </div>
@@ -135,42 +136,64 @@ export default function CreateTicketModal({ show, onClose }) {
                             className="w-full rounded border px-3 py-2"
                             value={data.date_opened}
                             onFocus={() => setShowProblemSuggestions(false)}
-                            onChange={e => setData("date_opened", e.target.value)}
+                            onChange={(e) =>
+                                setData("date_opened", e.target.value)
+                            }
                         />
                     </div>
 
                     <div>
-                        <label className="block mb-1">Problem Description</label>
+                        <label className="block mb-1">
+                            Problem Description
+                        </label>
+
                         <textarea
                             required
                             rows="3"
                             className="w-full rounded border px-3 py-2"
                             value={data.problem_description}
-                            onFocus={() => setShowProblemSuggestions(true)}
-                            onChange={e => {
-                                setData("problem_description", e.target.value);
+                            onFocus={() =>
+                                setShowProblemSuggestions(true)
+                            }
+                            onChange={(e) => {
+                                setData(
+                                    "problem_description",
+                                    e.target.value
+                                );
                                 setShowProblemSuggestions(false);
                             }}
                         />
 
-                        {showProblemSuggestions && data.category && TicketSuggestions.superadmin[data.category]?.length > 0 && (
-                            <div className="mt-2 space-y-2">
-                                {TicketSuggestions.superadmin[data.category].map((suggestion) => (
-                                    <button
-                                        key={suggestion}
-                                        type="button"
-                                        className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
-                                        onMouseDown={(e) => e.preventDefault()}
-                                        onClick={() => {
-                                            setData("problem_description", suggestion);
-                                            setShowProblemSuggestions(false);
-                                        }}
-                                    >
-                                        {suggestion}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                        {showProblemSuggestions &&
+                            data.category &&
+                            TicketSuggestions.superadmin[data.category]
+                                ?.length > 0 && (
+                                <div className="mt-2 space-y-2">
+                                    {TicketSuggestions.superadmin[
+                                        data.category
+                                    ].map((suggestion) => (
+                                        <button
+                                            key={suggestion}
+                                            type="button"
+                                            className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
+                                            onMouseDown={(e) =>
+                                                e.preventDefault()
+                                            }
+                                            onClick={() => {
+                                                setData(
+                                                    "problem_description",
+                                                    suggestion
+                                                );
+                                                setShowProblemSuggestions(
+                                                    false
+                                                );
+                                            }}
+                                        >
+                                            {suggestion}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                     </div>
 
                     <div>
@@ -180,10 +203,14 @@ export default function CreateTicketModal({ show, onClose }) {
                             className="w-full rounded border px-3 py-2"
                             value={data.status}
                             onFocus={() => setShowProblemSuggestions(false)}
-                            onChange={e => setData("status", e.target.value)}
+                            onChange={(e) =>
+                                setData("status", e.target.value)
+                            }
                         >
-                            {statuses.map(s => (
-                                <option key={s} value={s}>{s}</option>
+                            {statuses.map((status) => (
+                                <option key={status} value={status}>
+                                    {status}
+                                </option>
                             ))}
                         </select>
                     </div>

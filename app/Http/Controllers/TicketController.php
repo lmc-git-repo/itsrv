@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Models\Employee;
+use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -53,7 +54,10 @@ class TicketController extends Controller
 
         return Inertia::render('Tickets/Index', [
             'tickets' => $tickets,
-            'users'   => User::where('role', 'superadmin')->select('id', 'name')->orderBy('name')->get(),
+            'users' => User::where('role', 'superadmin')
+                ->select('id', 'name')
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 
@@ -61,7 +65,13 @@ class TicketController extends Controller
     {
         $ticket = Ticket::whereNull('created_by')
             ->latest()
-            ->select('id', 'ticket_no', 'employee_name', 'department', 'created_at')
+            ->select(
+                'id',
+                'ticket_no',
+                'employee_name',
+                'department',
+                'created_at'
+            )
             ->first();
 
         return response()->json($ticket);
@@ -72,12 +82,26 @@ class TicketController extends Controller
         $ticketsQuery = Ticket::whereNull('created_by');
 
         if ($request->tracking_code) {
-            $searchKeyword = strtoupper(trim($request->tracking_code));
+            $searchKeyword = strtoupper(
+                trim($request->tracking_code)
+            );
 
             $ticketsQuery->where(function ($query) use ($searchKeyword) {
-                $query->where('tracking_code', 'like', "%{$searchKeyword}%")
-                    ->orWhere('ticket_no', 'like', "%{$searchKeyword}%")
-                    ->orWhere('employee_name', 'like', "%{$searchKeyword}%");
+                $query->where(
+                    'tracking_code',
+                    'like',
+                    "%{$searchKeyword}%"
+                )
+                ->orWhere(
+                    'ticket_no',
+                    'like',
+                    "%{$searchKeyword}%"
+                )
+                ->orWhere(
+                    'employee_name',
+                    'like',
+                    "%{$searchKeyword}%"
+                );
             });
         }
 
@@ -88,8 +112,12 @@ class TicketController extends Controller
         return Inertia::render('EmployeeTickets/Index', [
             'tickets' => $tickets,
             'tracking_code' => $request->tracking_code,
-            'submitted_ticket_no' => session('submitted_ticket_no'),
-            'activeEmployees' => Employee::where('status', 'Employed')
+            'submitted_ticket_no' =>
+                session('submitted_ticket_no'),
+            'activeEmployees' => Employee::where(
+                'status',
+                'Employed'
+            )
                 ->select('id', 'name', 'department')
                 ->orderBy('name')
                 ->get(),
@@ -102,7 +130,8 @@ class TicketController extends Controller
             'employee_name' => [
                 'required',
                 'string',
-                Rule::exists('employees', 'name')->where('status', 'Employed'),
+                Rule::exists('employees', 'name')
+                    ->where('status', 'Employed'),
             ],
             'department' => 'required|string',
             'category' => 'required|string',
@@ -110,54 +139,81 @@ class TicketController extends Controller
         ]);
 
         $employeeCategory = $request->category;
-        $itCategory = $this->mapEmployeeCategoryToITCategory($employeeCategory);
+        $itCategory =
+            $this->mapEmployeeCategoryToITCategory(
+                $employeeCategory
+            );
 
         $ticket = Ticket::create([
             'employee_name' => $request->employee_name,
             'department' => $request->department,
             'employee_category' => $employeeCategory,
             'category' => $itCategory,
-            'problem_description' => $request->problem_description,
+            'problem_description' =>
+                $request->problem_description,
             'status' => 'Open',
             'date_opened' => now(),
             'created_by' => null,
         ]);
 
-        $ticketNo = 'TCK-' . str_pad($ticket->id, 4, '0', STR_PAD_LEFT);
+        $ticketNo = 'TCK-' .
+            str_pad(
+                $ticket->id,
+                4,
+                '0',
+                STR_PAD_LEFT
+            );
 
         $ticket->update([
             'ticket_no' => $ticketNo,
             'tracking_code' => $ticketNo,
         ]);
 
-        return redirect()->route('employee.tickets')->with('submitted_ticket_no', $ticketNo);
+        return redirect()
+            ->route('employee.tickets')
+            ->with(
+                'submitted_ticket_no',
+                $ticketNo
+            );
     }
 
-    public function employeeEdit(Request $request, Ticket $ticket)
-    {
+    public function employeeEdit(
+        Request $request,
+        Ticket $ticket
+    ) {
         abort_if($ticket->created_by !== null, 403);
         abort_if($ticket->status !== 'Open', 403);
 
         abort_if(
-            $ticket->tracking_code !== $request->tracking_code &&
-            $ticket->ticket_no !== $request->tracking_code,
+            $ticket->tracking_code !==
+                $request->tracking_code &&
+            $ticket->ticket_no !==
+                $request->tracking_code,
             403
         );
 
-        return Inertia::render('EmployeeTickets/Edit', [
-            'ticket' => $ticket,
-            'tracking_code' => $request->tracking_code,
-        ]);
+        return Inertia::render(
+            'EmployeeTickets/Edit',
+            [
+                'ticket' => $ticket,
+                'tracking_code' =>
+                    $request->tracking_code,
+            ]
+        );
     }
 
-    public function employeeUpdate(Request $request, Ticket $ticket)
-    {
+    public function employeeUpdate(
+        Request $request,
+        Ticket $ticket
+    ) {
         abort_if($ticket->created_by !== null, 403);
         abort_if($ticket->status !== 'Open', 403);
 
         abort_if(
-            $ticket->tracking_code !== $request->tracking_code &&
-            $ticket->ticket_no !== $request->tracking_code,
+            $ticket->tracking_code !==
+                $request->tracking_code &&
+            $ticket->ticket_no !==
+                $request->tracking_code,
             403
         );
 
@@ -165,7 +221,8 @@ class TicketController extends Controller
             'employee_name' => [
                 'required',
                 'string',
-                Rule::exists('employees', 'name')->where('status', 'Employed'),
+                Rule::exists('employees', 'name')
+                    ->where('status', 'Employed'),
             ],
             'department' => 'required|string',
             'category' => 'required|string',
@@ -174,24 +231,52 @@ class TicketController extends Controller
         ]);
 
         $employeeCategory = $request->category;
-        $itCategory = $this->mapEmployeeCategoryToITCategory($employeeCategory);
+
+        $itCategory =
+            $this->mapEmployeeCategoryToITCategory(
+                $employeeCategory
+            );
+
+        $originalDateOpened = Carbon::parse(
+            $ticket->date_opened
+        );
+
+        $editedDateOpened = Carbon::create(
+            $originalDateOpened->year,
+            $originalDateOpened->month,
+            $originalDateOpened->day,
+            now()->hour,
+            now()->minute,
+            now()->second
+        );
 
         $ticket->update([
-            'employee_name' => $request->employee_name,
-            'department' => $request->department,
-            'employee_category' => $employeeCategory,
-            'category' => $itCategory,
-            'problem_description' => $request->problem_description,
+            'employee_name' =>
+                $request->employee_name,
+            'department' =>
+                $request->department,
+            'employee_category' =>
+                $employeeCategory,
+            'category' =>
+                $itCategory,
+            'problem_description' =>
+                $request->problem_description,
+            'date_opened' =>
+                $editedDateOpened,
         ]);
 
-        return redirect()->route('employee.tickets');
+        return redirect()
+            ->route('employee.tickets');
     }
 
     public function employeeShow(Ticket $ticket)
     {
-        return Inertia::render('EmployeeTickets/Show', [
-            'ticket' => $ticket,
-        ]);
+        return Inertia::render(
+            'EmployeeTickets/Show',
+            [
+                'ticket' => $ticket,
+            ]
+        );
     }
 
     public function store(Request $request)
@@ -206,49 +291,95 @@ class TicketController extends Controller
             'resolved_at' => 'nullable|date',
         ]);
 
+        $selectedDateOpened = Carbon::parse(
+            $request->date_opened
+        );
+
+        $dateOpened = Carbon::create(
+            $selectedDateOpened->year,
+            $selectedDateOpened->month,
+            $selectedDateOpened->day,
+            now()->hour,
+            now()->minute,
+            now()->second
+        );
+
         $ticket = Ticket::create([
-            'employee_name' => $request->employee_name,
-            'department' => $request->department,
-            'category' => $request->category,
+            'employee_name' =>
+                $request->employee_name,
+            'department' =>
+                $request->department,
+            'category' =>
+                $request->category,
             'employee_category' => null,
-            'problem_description' => $request->problem_description,
-            'status' => $request->status,
-            'date_opened' => $request->date_opened,
-            'resolved_at' => $request->status === 'Resolved' ? $request->resolved_at : null,
-            'created_by' => Auth::id(),
+            'problem_description' =>
+                $request->problem_description,
+            'status' =>
+                $request->status,
+            'date_opened' =>
+                $dateOpened,
+            'resolved_at' => null,
+            'created_by' =>
+                Auth::id(),
         ]);
 
-        $ticketNo = 'TCK-' . str_pad($ticket->id, 4, '0', STR_PAD_LEFT);
+        $ticketNo = 'TCK-' .
+            str_pad(
+                $ticket->id,
+                4,
+                '0',
+                STR_PAD_LEFT
+            );
 
         $ticket->update([
             'ticket_no' => $ticketNo,
             'tracking_code' => $ticketNo,
         ]);
 
-        return redirect()->route('tickets.index')->with('success', 'Ticket created successfully.');
+        return redirect()
+            ->route('tickets.index')
+            ->with(
+                'success',
+                'Ticket created successfully.'
+            );
     }
 
     public function show(Ticket $ticket)
     {
         return Inertia::render('Tickets/Show', [
-            'ticket' => $ticket->load(['creator', 'resolver']),
+            'ticket' => $ticket->load([
+                'creator',
+                'resolver',
+            ]),
         ]);
     }
 
     public function edit(Ticket $ticket)
     {
-        return Inertia::render('Tickets/Edit', ['ticket' => $ticket]);
+        return Inertia::render(
+            'Tickets/Edit',
+            [
+                'ticket' => $ticket,
+            ]
+        );
     }
 
     public function destroy(Ticket $ticket)
     {
         $ticket->delete();
 
-        return redirect()->back()->with('success', 'Ticket deleted successfully.');
+        return redirect()
+            ->back()
+            ->with(
+                'success',
+                'Ticket deleted successfully.'
+            );
     }
 
-    public function update(Request $request, Ticket $ticket)
-    {
+    public function update(
+        Request $request,
+        Ticket $ticket
+    ) {
         $request->validate([
             'employee_name' => 'required|string',
             'department' => 'required|string',
@@ -258,64 +389,170 @@ class TicketController extends Controller
             'date_opened' => 'required|date',
             'problem_solution' => 'nullable|string',
             'progress_update' => 'nullable|string',
-            'resolved_by' => 'nullable|exists:users,id',
-            'resolved_at' => 'nullable|date',
+            'resolved_by' =>
+                'nullable|exists:users,id',
+            'resolved_at' => [
+                Rule::requiredIf(
+                    $request->status === 'Resolved'
+                ),
+                'nullable',
+                'date',
+            ],
         ]);
 
-        $newSolution = $request->problem_solution;
+        $newSolution =
+            $request->problem_solution;
 
         if ($newSolution) {
             $user = Auth::user()->name;
 
-            $existing = $ticket->problem_solution
-                ? $ticket->problem_solution . "\n\n"
-                : '';
+            $existing =
+                $ticket->problem_solution
+                    ? $ticket->problem_solution .
+                        "\n\n"
+                    : '';
 
-            $formatted = "{$user}: {$newSolution}";
+            $formatted =
+                "{$user}: {$newSolution}";
 
-            $ticket->problem_solution = $existing . $formatted;
+            $ticket->problem_solution =
+                $existing . $formatted;
         }
 
-        $newProgress = $request->progress_update;
+        $newProgress =
+            $request->progress_update;
 
         if ($newProgress) {
             $user = Auth::user()->name;
 
-            $existing = $ticket->progress_update
-                ? $ticket->progress_update . "\n\n"
-                : '';
+            $existing =
+                $ticket->progress_update
+                    ? $ticket->progress_update .
+                        "\n\n"
+                    : '';
 
-            $formatted = "{$user}: {$newProgress}";
+            $formatted =
+                "{$user}: {$newProgress}";
 
-            $ticket->progress_update = $existing . $formatted;
+            $ticket->progress_update =
+                $existing . $formatted;
+        }
+
+        $requestedDateOpened =
+            Carbon::parse($request->date_opened);
+
+        if ($ticket->date_opened) {
+            $existingDateOpened =
+                Carbon::parse($ticket->date_opened);
+
+            $dateOpened = Carbon::create(
+                $requestedDateOpened->year,
+                $requestedDateOpened->month,
+                $requestedDateOpened->day,
+                $existingDateOpened->hour,
+                $existingDateOpened->minute,
+                $existingDateOpened->second
+            );
+        } else {
+            $dateOpened = Carbon::create(
+                $requestedDateOpened->year,
+                $requestedDateOpened->month,
+                $requestedDateOpened->day,
+                now()->hour,
+                now()->minute,
+                now()->second
+            );
+        }
+
+        $resolvedAt = null;
+
+        if (
+            $request->status === 'Resolved' &&
+            $request->resolved_at
+        ) {
+            $requestedResolvedAt =
+                Carbon::parse(
+                    $request->resolved_at
+                );
+
+            if ($ticket->resolved_at) {
+                $existingResolvedAt =
+                    Carbon::parse(
+                        $ticket->resolved_at
+                    );
+
+                $resolvedAt =
+                    Carbon::create(
+                        $requestedResolvedAt->year,
+                        $requestedResolvedAt->month,
+                        $requestedResolvedAt->day,
+                        $existingResolvedAt->hour,
+                        $existingResolvedAt->minute,
+                        $existingResolvedAt->second
+                    );
+            } else {
+                $currentResolvedTime = now();
+
+                $resolvedAt =
+                    Carbon::create(
+                        $requestedResolvedAt->year,
+                        $requestedResolvedAt->month,
+                        $requestedResolvedAt->day,
+                        $currentResolvedTime->hour,
+                        $currentResolvedTime->minute,
+                        $currentResolvedTime->second
+                    );
+            }
         }
 
         $ticket->update([
-            'employee_name' => $request->employee_name,
-            'department' => $request->department,
-            'category' => $request->category,
-            'problem_description' => $request->problem_description,
-            'status' => $request->status,
-            'date_opened' => $request->date_opened,
-            'problem_solution' => $ticket->problem_solution,
-            'progress_update' => $ticket->progress_update,
-            'resolved_by' => $request->resolved_by,
-            'resolved_at' => $request->status === 'Resolved' ? $request->resolved_at : null,
+            'employee_name' =>
+                $request->employee_name,
+            'department' =>
+                $request->department,
+            'category' =>
+                $request->category,
+            'problem_description' =>
+                $request->problem_description,
+            'status' =>
+                $request->status,
+            'date_opened' =>
+                $dateOpened,
+            'problem_solution' =>
+                $ticket->problem_solution,
+            'progress_update' =>
+                $ticket->progress_update,
+            'resolved_by' =>
+                $request->resolved_by,
+            'resolved_at' =>
+                $resolvedAt,
         ]);
 
-        return redirect()->route('tickets.index')->with('success', 'Ticket updated successfully.');
+        return redirect()
+            ->route('tickets.index')
+            ->with(
+                'success',
+                'Ticket updated successfully.'
+            );
     }
 
-    private function mapEmployeeCategoryToITCategory($employeeCategory)
-    {
+    private function mapEmployeeCategoryToITCategory(
+        $employeeCategory
+    ) {
         return [
             'Hardware' => 'Hardware',
-            'Software / Application' => 'System / Application',
-            'Account / Login' => 'Accounts & Access',
-            'File / Folder Access' => 'Files & Shared Folder',
-            'Network / Internet' => 'Network & Internet',
-            'CCTV / Security' => 'Security',
-            'Others' => 'Others',
+            'Software / Application' =>
+                'System / Application',
+            'Account / Login' =>
+                'Accounts & Access',
+            'File / Folder Access' =>
+                'Files & Shared Folder',
+            'Network / Internet' =>
+                'Network & Internet',
+            'CCTV / Security' =>
+                'Security',
+            'Others' =>
+                'Others',
         ][$employeeCategory] ?? 'Others';
     }
 }

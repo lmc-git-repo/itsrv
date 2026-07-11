@@ -2,15 +2,26 @@ import { Head, useForm } from "@inertiajs/react";
 import TicketSuggestions from "@/Constants/TicketSuggestions";
 import { useState } from "react";
 
-export default function EmployeeTicketEdit({ ticket, tracking_code = "" }) {
-    const [showProblemSuggestions, setShowProblemSuggestions] = useState(false);
+export default function EmployeeTicketEdit({
+    ticket,
+    tracking_code = "",
+}) {
+    const [showProblemSuggestions, setShowProblemSuggestions] =
+        useState(false);
 
     const { data, setData, put, processing } = useForm({
         employee_name: ticket.employee_name || "",
         department: ticket.department || "",
-        category: ticket.employee_category || ticket.category || "",
-        problem_description: ticket.problem_description || "",
-        tracking_code: tracking_code || ticket.tracking_code || "",
+        category:
+            ticket.employee_category ||
+            ticket.category ||
+            "",
+        problem_description:
+            ticket.problem_description || "",
+        tracking_code:
+            tracking_code ||
+            ticket.tracking_code ||
+            "",
     });
 
     const departments = [
@@ -21,7 +32,9 @@ export default function EmployeeTicketEdit({ ticket, tracking_code = "" }) {
         "New Project", "PPC", "Purchasing", "QC", "Safety", "Sales",
     ];
 
-    const categories = Object.keys(TicketSuggestions.employee);
+    const categories = Object.keys(
+        TicketSuggestions.employee
+    );
 
     const submit = (e) => {
         e.preventDefault();
@@ -44,17 +57,30 @@ export default function EmployeeTicketEdit({ ticket, tracking_code = "" }) {
                             Edit Ticket
                         </h1>
 
-                        <form onSubmit={submit} className="space-y-4 text-sm text-[#101E33]">
+                        <form
+                            onSubmit={submit}
+                            className="space-y-4 text-sm text-[#101E33]"
+                        >
                             <div>
                                 <label className="block mb-1 font-semibold text-[#101E33]">
                                     Employee Name
                                 </label>
+
                                 <input
                                     type="text"
                                     className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
                                     value={data.employee_name}
-                                    onFocus={() => setShowProblemSuggestions(false)}
-                                    onChange={(e) => setData("employee_name", e.target.value)}
+                                    onFocus={() =>
+                                        setShowProblemSuggestions(
+                                            false
+                                        )
+                                    }
+                                    onChange={(e) =>
+                                        setData(
+                                            "employee_name",
+                                            e.target.value
+                                        )
+                                    }
                                     required
                                 />
                             </div>
@@ -63,19 +89,37 @@ export default function EmployeeTicketEdit({ ticket, tracking_code = "" }) {
                                 <label className="block mb-1 font-semibold text-[#101E33]">
                                     Department
                                 </label>
+
                                 <select
                                     className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
                                     value={data.department}
-                                    onFocus={() => setShowProblemSuggestions(false)}
-                                    onChange={(e) => setData("department", e.target.value)}
+                                    onFocus={() =>
+                                        setShowProblemSuggestions(
+                                            false
+                                        )
+                                    }
+                                    onChange={(e) =>
+                                        setData(
+                                            "department",
+                                            e.target.value
+                                        )
+                                    }
                                     required
                                 >
-                                    <option value="">Select Department</option>
-                                    {departments.map((department) => (
-                                        <option key={department} value={department}>
-                                            {department}
-                                        </option>
-                                    ))}
+                                    <option value="">
+                                        Select Department
+                                    </option>
+
+                                    {departments.map(
+                                        (department) => (
+                                            <option
+                                                key={department}
+                                                value={department}
+                                            >
+                                                {department}
+                                            </option>
+                                        )
+                                    )}
                                 </select>
                             </div>
 
@@ -83,22 +127,40 @@ export default function EmployeeTicketEdit({ ticket, tracking_code = "" }) {
                                 <label className="block mb-1 font-semibold text-[#101E33]">
                                     Category
                                 </label>
+
                                 <select
                                     className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
                                     value={data.category}
-                                    onFocus={() => setShowProblemSuggestions(false)}
+                                    onFocus={() =>
+                                        setShowProblemSuggestions(
+                                            false
+                                        )
+                                    }
                                     onChange={(e) => {
-                                        setData("category", e.target.value);
-                                        setShowProblemSuggestions(false);
+                                        setData(
+                                            "category",
+                                            e.target.value
+                                        );
+                                        setShowProblemSuggestions(
+                                            false
+                                        );
                                     }}
                                     required
                                 >
-                                    <option value="">Select Category</option>
-                                    {categories.map((category) => (
-                                        <option key={category} value={category}>
-                                            {category}
-                                        </option>
-                                    ))}
+                                    <option value="">
+                                        Select Category
+                                    </option>
+
+                                    {categories.map(
+                                        (category) => (
+                                            <option
+                                                key={category}
+                                                value={category}
+                                            >
+                                                {category}
+                                            </option>
+                                        )
+                                    )}
                                 </select>
                             </div>
 
@@ -110,33 +172,65 @@ export default function EmployeeTicketEdit({ ticket, tracking_code = "" }) {
                                 <textarea
                                     rows="6"
                                     className="w-full rounded border px-3 py-2 text-[#101E33] bg-white"
-                                    value={data.problem_description}
-                                    onFocus={() => setShowProblemSuggestions(true)}
+                                    value={
+                                        data.problem_description
+                                    }
+                                    onFocus={() =>
+                                        setShowProblemSuggestions(
+                                            true
+                                        )
+                                    }
                                     onChange={(e) => {
-                                        setData("problem_description", e.target.value);
-                                        setShowProblemSuggestions(false);
+                                        setData(
+                                            "problem_description",
+                                            e.target.value
+                                        );
+                                        setShowProblemSuggestions(
+                                            false
+                                        );
                                     }}
                                     required
                                 />
 
-                                {showProblemSuggestions && data.category && TicketSuggestions.employee[data.category]?.length > 0 && (
-                                    <div className="mt-2 space-y-2">
-                                        {TicketSuggestions.employee[data.category].map((suggestion) => (
-                                            <button
-                                                key={suggestion}
-                                                type="button"
-                                                className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
-                                                onMouseDown={(e) => e.preventDefault()}
-                                                onClick={() => {
-                                                    setData("problem_description", suggestion);
-                                                    setShowProblemSuggestions(false);
-                                                }}
-                                            >
-                                                {suggestion}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
+                                {showProblemSuggestions &&
+                                    data.category &&
+                                    TicketSuggestions.employee[
+                                        data.category
+                                    ]?.length > 0 && (
+                                        <div className="mt-2 space-y-2">
+                                            {TicketSuggestions.employee[
+                                                data.category
+                                            ].map(
+                                                (suggestion) => (
+                                                    <button
+                                                        key={
+                                                            suggestion
+                                                        }
+                                                        type="button"
+                                                        className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
+                                                        onMouseDown={(
+                                                            e
+                                                        ) =>
+                                                            e.preventDefault()
+                                                        }
+                                                        onClick={() => {
+                                                            setData(
+                                                                "problem_description",
+                                                                suggestion
+                                                            );
+                                                            setShowProblemSuggestions(
+                                                                false
+                                                            );
+                                                        }}
+                                                    >
+                                                        {
+                                                            suggestion
+                                                        }
+                                                    </button>
+                                                )
+                                            )}
+                                        </div>
+                                    )}
                             </div>
 
                             <div className="flex justify-center pt-4">

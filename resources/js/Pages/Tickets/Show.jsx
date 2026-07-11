@@ -4,7 +4,18 @@ export default function Show({ show, ticket, onClose }) {
     const formatDateTime = (date) => {
         if (!date) return "—";
 
-        return new Date(date).toLocaleString("en-US", {
+        const normalizedDate = String(date)
+            .replace(" ", "T")
+            .replace(/\.\d+Z?$/, "")
+            .replace(/Z$/, "");
+
+        const parsedDate = new Date(normalizedDate);
+
+        if (Number.isNaN(parsedDate.getTime())) {
+            return "—";
+        }
+
+        return parsedDate.toLocaleString("en-US", {
             year: "numeric",
             month: "2-digit",
             day: "2-digit",
@@ -34,16 +45,22 @@ export default function Show({ show, ticket, onClose }) {
             };
         }
 
-        const remarks = description.substring(markerIndex + marker.length).trim();
+        const remarks = description
+            .substring(markerIndex + marker.length)
+            .trim();
 
         return {
-            problemDescription: description.substring(0, markerIndex).trim(),
-            remarks: remarks,
+            problemDescription: description
+                .substring(0, markerIndex)
+                .trim(),
+            remarks,
             hasRemarks: remarks !== "",
         };
     };
 
-    const ticketDetails = splitProblemDescription(ticket?.problem_description);
+    const ticketDetails = splitProblemDescription(
+        ticket?.problem_description
+    );
 
     useEffect(() => {
         const handleEsc = (e) => {
@@ -71,7 +88,6 @@ export default function Show({ show, ticket, onClose }) {
             />
 
             <div className="relative bg-white rounded-xl w-full max-w-lg p-6 shadow-xl z-10">
-
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 text-gray-500 hover:text-black"
@@ -84,16 +100,51 @@ export default function Show({ show, ticket, onClose }) {
                 </h2>
 
                 <div className="space-y-3 text-base text-[#101E33]">
-                    <p><strong>Ticket No:</strong> {ticket.ticket_no || "—"}</p>
-                    <p><strong>Employee Name:</strong> {ticket.employee_name}</p>
-                    <p><strong>Department:</strong> {ticket.department}</p>
-                    <p><strong>Category:</strong> {ticket.category}</p>
-                    <p><strong>Status:</strong> {ticket.status}</p>
-                    <p><strong>Date Opened:</strong> {formatDateTime(ticket.date_opened || ticket.created_at)}</p>
-                    <p><strong>Resolved At:</strong> {ticket.resolved_at ? formatDateTime(ticket.resolved_at) : "—"}</p>
+                    <p>
+                        <strong>Ticket No:</strong>{" "}
+                        {ticket.ticket_no || "—"}
+                    </p>
 
-                    <p><strong>Created By:</strong> {ticket.creator?.name || "Employee"}</p>
-                    <p><strong>Resolved By:</strong> {ticket.resolver?.name || "—"}</p>
+                    <p>
+                        <strong>Employee Name:</strong>{" "}
+                        {ticket.employee_name}
+                    </p>
+
+                    <p>
+                        <strong>Department:</strong>{" "}
+                        {ticket.department}
+                    </p>
+
+                    <p>
+                        <strong>Category:</strong>{" "}
+                        {ticket.category}
+                    </p>
+
+                    <p>
+                        <strong>Status:</strong> {ticket.status}
+                    </p>
+
+                    <p>
+                        <strong>Date Opened:</strong>{" "}
+                        {formatDateTime(ticket.date_opened)}
+                    </p>
+
+                    <p>
+                        <strong>Resolved At:</strong>{" "}
+                        {ticket.resolved_at
+                            ? formatDateTime(ticket.resolved_at)
+                            : "—"}
+                    </p>
+
+                    <p>
+                        <strong>Created By:</strong>{" "}
+                        {ticket.creator?.name || "Employee"}
+                    </p>
+
+                    <p>
+                        <strong>Resolved By:</strong>{" "}
+                        {ticket.resolver?.name || "—"}
+                    </p>
 
                     <div>
                         <strong>Problem Description:</strong>
@@ -120,7 +171,10 @@ export default function Show({ show, ticket, onClose }) {
                         <textarea
                             readOnly
                             className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base"
-                            value={ticket.progress_update || "No progress update yet."}
+                            value={
+                                ticket.progress_update ||
+                                "No progress update yet."
+                            }
                             style={{ whiteSpace: "pre-wrap" }}
                         />
                     </div>
@@ -130,7 +184,10 @@ export default function Show({ show, ticket, onClose }) {
                         <textarea
                             readOnly
                             className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base"
-                            value={ticket.problem_solution || "No solution provided yet."}
+                            value={
+                                ticket.problem_solution ||
+                                "No solution provided yet."
+                            }
                             style={{ whiteSpace: "pre-wrap" }}
                         />
                     </div>
