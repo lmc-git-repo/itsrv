@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="en" translate="yes">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Language" content="en">
 
     <title inertia>{{ config('app.name', 'ITS-LMC') }}</title>
 
@@ -39,7 +40,7 @@
     @endisset
 </head>
 
-<body class="font-sans antialiased">
+<body class="font-sans antialiased" translate="yes">
     @inertia
 </body>
 </html>
