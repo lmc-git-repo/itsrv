@@ -28,6 +28,7 @@ Route::post('/employee/tickets', [TicketController::class, 'employeeStore'])
 
 Route::get('/employee/tickets/{ticket}', [TicketController::class, 'employeeShow'])
     ->name('employee.tickets.show');
+
 Route::get('/employee/tickets/{ticket}/edit', [TicketController::class, 'employeeEdit'])
     ->name('employee.tickets.edit');
 
@@ -40,7 +41,7 @@ Route::put('/employee/tickets/{ticket}', [TicketController::class, 'employeeUpda
 |--------------------------------------------------------------------------
 */
 Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth','role:superadmin,admin']) 
+    ->middleware(['auth','role:superadmin,admin'])
     ->name('dashboard');
 
 /*
@@ -60,6 +61,9 @@ Route::middleware(['auth','role:superadmin,admin'])->group(function () {
 });
 
 Route::middleware(['auth','role:superadmin'])->group(function () {
+
+    Route::post('/it/heartbeat', [TicketController::class, 'updateITHeartbeat'])
+        ->name('it.heartbeat');
 
     Route::get('/tickets/latest/employee', [TicketController::class, 'latestEmployeeTicket'])
         ->name('tickets.latest.employee');
@@ -88,7 +92,7 @@ Route::middleware(['auth','role:superadmin'])->group(function () {
 | Trouble Report
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth','role:superadmin,admin'])->group(function () { 
+Route::middleware(['auth','role:superadmin,admin'])->group(function () {
 
     Route::get('/records/trouble-report', [TroubleReportController::class, 'index'])
         ->name('troublereport.index');
@@ -120,7 +124,7 @@ Route::middleware(['auth','role:superadmin'])->group(function () {
 | Transfer Slip
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth','role:superadmin,admin'])->group(function () { 
+Route::middleware(['auth','role:superadmin,admin'])->group(function () {
 
     Route::prefix('records/transfer-slip')->name('transferslip.')->group(function () {
 
@@ -153,9 +157,9 @@ Route::middleware(['auth','role:superadmin'])->group(function () {
 
     Route::delete('/records/cp-transfer-slip/{cptransferslip}', [CPTransferSlipController::class, 'destroy'])
         ->name('cptransferslip.destroy');
-    
+
     Route::get('/records/cp-transfer-slip/{cptransferslip}/download', [CPTransferSlipController::class, 'downloadWord'])
-    ->name('cptransferslip.download');
+        ->name('cptransferslip.download');
 
 });
 

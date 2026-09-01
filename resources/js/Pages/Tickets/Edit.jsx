@@ -2,14 +2,28 @@ import { useEffect, useMemo, useState } from "react";
 import TicketSuggestions from "@/Constants/TicketSuggestions";
 import { useForm, usePage } from "@inertiajs/react";
 
-export default function EditTicketModal({ show, ticket, onClose }) {
-    const { users = [] } = usePage().props;
-    const [showProblemSuggestions, setShowProblemSuggestions] =
-        useState(false);
+export default function EditTicketModal({
+    show,
+    ticket,
+    onClose,
+}) {
+    const {
+        users = [],
+        auth,
+    } = usePage().props;
+
+    const [
+        showProblemSuggestions,
+        setShowProblemSuggestions,
+    ] = useState(false);
 
     const superadminUsers = useMemo(() => {
         return Array.isArray(users)
-            ? users.filter((u) => u?.role === "superadmin")
+            ? users.filter(
+                  (u) =>
+                      u?.role ===
+                      "superadmin"
+              )
             : [];
     }, [users]);
 
@@ -21,15 +35,22 @@ export default function EditTicketModal({ show, ticket, onClose }) {
         "New Project", "PPC", "Purchasing", "QC", "Safety", "Sales",
     ];
 
-    const categories = Object.keys(TicketSuggestions.superadmin);
+    const categories = Object.keys(
+        TicketSuggestions.superadmin
+    );
 
     const formatDateInput = (date) => {
         if (!date) return "";
 
-        return String(date).substring(0, 10);
+        return String(date).substring(
+            0,
+            10
+        );
     };
 
-    const splitProblemDescription = (description) => {
+    const splitProblemDescription = (
+        description
+    ) => {
         if (!description) {
             return {
                 problemDescription: "",
@@ -37,50 +58,96 @@ export default function EditTicketModal({ show, ticket, onClose }) {
             };
         }
 
-        const marker = "\n\nRemarks:";
-        const markerIndex = description.indexOf(marker);
+        const marker =
+            "\n\nRemarks:";
+
+        const markerIndex =
+            description.indexOf(marker);
 
         if (markerIndex === -1) {
             return {
-                problemDescription: description,
+                problemDescription:
+                    description,
                 remarksText: "",
             };
         }
 
         return {
-            problemDescription: description
-                .substring(0, markerIndex)
-                .trim(),
-            remarksText: description.substring(markerIndex).trim(),
+            problemDescription:
+                description
+                    .substring(
+                        0,
+                        markerIndex
+                    )
+                    .trim(),
+
+            remarksText:
+                description
+                    .substring(
+                        markerIndex
+                    )
+                    .trim(),
         };
     };
 
     const original = useMemo(() => {
         if (!ticket) return null;
 
-        const ticketDetails = splitProblemDescription(
-            ticket.problem_description || ""
-        );
+        const ticketDetails =
+            splitProblemDescription(
+                ticket.problem_description ||
+                    ""
+            );
 
         return {
-            employee_name: ticket.employee_name || "",
-            department: ticket.department || "",
-            category: ticket.category || "",
+            employee_name:
+                ticket.employee_name ||
+                "",
+
+            department:
+                ticket.department ||
+                "",
+
+            category:
+                ticket.category || "",
+
             problem_description:
-                ticketDetails.problemDescription || "",
-            remarks_text: ticketDetails.remarksText || "",
-            status: ticket.status || "",
-            problem_solution: ticket.problem_solution || "",
-            progress_update: ticket.progress_update || "",
-            resolved_by: ticket.resolved_by
-                ? String(ticket.resolved_by)
-                : "",
-            date_opened: formatDateInput(
-                ticket.date_opened || ""
-            ),
-            resolved_at: formatDateInput(
-                ticket.resolved_at || ""
-            ),
+                ticketDetails.problemDescription ||
+                "",
+
+            remarks_text:
+                ticketDetails.remarksText ||
+                "",
+
+            status:
+                ticket.status || "",
+
+            problem_solution:
+                ticket.problem_solution ||
+                "",
+
+            progress_update:
+                ticket.progress_update ||
+                "",
+
+            resolved_by:
+                ticket.resolved_by
+                    ? String(
+                          ticket.resolved_by
+                      )
+                    : "",
+
+            date_opened:
+                formatDateInput(
+                    ticket.date_opened ||
+                        ""
+                ),
+
+            resolved_at:
+                formatDateInput(
+                    ticket.resolved_at ||
+                        ""
+                ),
         };
     }, [ticket]);
 
@@ -116,46 +183,95 @@ export default function EditTicketModal({ show, ticket, onClose }) {
         }
     }, [original]);
 
-    const hasChanges = useMemo(() => {
-        if (!original) return false;
-
-        return Object.keys(original).some((key) => {
-            if (key === "problem_solution") {
-                return data.problem_solution !== "";
+    const hasChanges =
+        useMemo(() => {
+            if (!original) {
+                return false;
             }
 
-            if (key === "progress_update") {
-                return data.progress_update !== "";
-            }
+            return Object.keys(
+                original
+            ).some((key) => {
+                if (
+                    key ===
+                    "problem_solution"
+                ) {
+                    return (
+                        data.problem_solution !==
+                        ""
+                    );
+                }
 
-            return data[key] !== original[key];
-        });
-    }, [data, original]);
+                if (
+                    key ===
+                    "progress_update"
+                ) {
+                    return (
+                        data.progress_update !==
+                        ""
+                    );
+                }
+
+                return (
+                    data[key] !==
+                    original[key]
+                );
+            });
+        }, [data, original]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        if (!hasChanges || !ticket) return;
+        if (
+            !hasChanges ||
+            !ticket
+        ) {
+            return;
+        }
 
         transform((formData) => ({
             ...formData,
-            problem_description: formData.remarks_text
-                ? `${formData.problem_description}\n\n${formData.remarks_text}`
-                : formData.problem_description,
+
+            problem_description:
+                formData.remarks_text
+                    ? `${formData.problem_description}\n\n${formData.remarks_text}`
+                    : formData.problem_description,
         }));
 
-        put(route("tickets.update", ticket.id), {
-            preserveScroll: true,
-            preserveState: false,
-            onSuccess: () => {
-                setData("problem_solution", "");
-                setData("progress_update", "");
-                onClose();
-            },
-        });
+        put(
+            route(
+                "tickets.update",
+                ticket.id
+            ),
+            {
+                preserveScroll: true,
+                preserveState: false,
+
+                onSuccess: () => {
+                    setData(
+                        "problem_solution",
+                        ""
+                    );
+
+                    setData(
+                        "progress_update",
+                        ""
+                    );
+
+                    onClose();
+                },
+            }
+        );
     };
 
-    if (!show || !ticket) return null;
+    if (!show || !ticket) {
+        return null;
+    }
+
+    const assignedITName =
+        ticket.assignee?.name ||
+        auth?.user?.name ||
+        "";
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -182,12 +298,19 @@ export default function EditTicketModal({ show, ticket, onClose }) {
 
                 <div className="space-y-4 text-sm text-[#101E33]">
                     <div>
-                        <label>Employee Name</label>
+                        <label>
+                            Employee Name
+                        </label>
+
                         <input
                             className="w-full rounded border px-3 py-2"
-                            value={data.employee_name}
+                            value={
+                                data.employee_name
+                            }
                             onFocus={() =>
-                                setShowProblemSuggestions(false)
+                                setShowProblemSuggestions(
+                                    false
+                                )
                             }
                             onChange={(e) =>
                                 setData(
@@ -199,12 +322,19 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                     </div>
 
                     <div>
-                        <label>Department</label>
+                        <label>
+                            Department
+                        </label>
+
                         <select
                             className="w-full rounded border px-3 py-2"
-                            value={data.department}
+                            value={
+                                data.department
+                            }
                             onFocus={() =>
-                                setShowProblemSuggestions(false)
+                                setShowProblemSuggestions(
+                                    false
+                                )
                             }
                             onChange={(e) =>
                                 setData(
@@ -213,131 +343,239 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                                 )
                             }
                         >
-                            <option value="">Select Department</option>
+                            <option value="">
+                                Select
+                                Department
+                            </option>
 
-                            {departments.map((department) => (
-                                <option
-                                    key={department}
-                                    value={department}
-                                >
-                                    {department}
-                                </option>
-                            ))}
+                            {departments.map(
+                                (
+                                    department
+                                ) => (
+                                    <option
+                                        key={
+                                            department
+                                        }
+                                        value={
+                                            department
+                                        }
+                                    >
+                                        {
+                                            department
+                                        }
+                                    </option>
+                                )
+                            )}
                         </select>
                     </div>
 
                     <div>
-                        <label>Category</label>
+                        <label>
+                            Category
+                        </label>
+
                         <select
                             className="w-full rounded border px-3 py-2"
-                            value={data.category}
+                            value={
+                                data.category
+                            }
                             onFocus={() =>
-                                setShowProblemSuggestions(false)
+                                setShowProblemSuggestions(
+                                    false
+                                )
                             }
                             onChange={(e) => {
                                 setData(
                                     "category",
-                                    e.target.value
+                                    e.target
+                                        .value
                                 );
-                                setShowProblemSuggestions(false);
+
+                                setShowProblemSuggestions(
+                                    false
+                                );
                             }}
                         >
-                            <option value="">Select Category</option>
+                            <option value="">
+                                Select Category
+                            </option>
 
-                            {categories.map((category) => (
-                                <option
-                                    key={category}
-                                    value={category}
-                                >
-                                    {category}
-                                </option>
-                            ))}
+                            {categories.map(
+                                (category) => (
+                                    <option
+                                        key={
+                                            category
+                                        }
+                                        value={
+                                            category
+                                        }
+                                    >
+                                        {
+                                            category
+                                        }
+                                    </option>
+                                )
+                            )}
                         </select>
                     </div>
 
                     <div>
-                        <label>Problem Description</label>
+                        <label>
+                            Problem
+                            Description
+                        </label>
 
                         <textarea
                             rows="3"
                             className="w-full rounded border px-3 py-2"
-                            value={data.problem_description}
+                            value={
+                                data.problem_description
+                            }
                             onFocus={() =>
-                                setShowProblemSuggestions(true)
+                                setShowProblemSuggestions(
+                                    true
+                                )
                             }
                             onChange={(e) => {
                                 setData(
                                     "problem_description",
-                                    e.target.value
+                                    e.target
+                                        .value
                                 );
-                                setShowProblemSuggestions(false);
+
+                                setShowProblemSuggestions(
+                                    false
+                                );
                             }}
                         />
 
                         {showProblemSuggestions &&
                             data.category &&
-                            TicketSuggestions.superadmin[data.category]
-                                ?.length > 0 && (
+                            TicketSuggestions
+                                .superadmin[
+                                data.category
+                            ]?.length >
+                                0 && (
                                 <div className="mt-2 space-y-2">
                                     {TicketSuggestions.superadmin[
-                                        data.category
-                                    ].map((suggestion) => (
-                                        <button
-                                            key={suggestion}
-                                            type="button"
-                                            className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
-                                            onMouseDown={(e) =>
-                                                e.preventDefault()
-                                            }
-                                            onClick={() => {
-                                                setData(
-                                                    "problem_description",
+                                        data
+                                            .category
+                                    ].map(
+                                        (
+                                            suggestion
+                                        ) => (
+                                            <button
+                                                key={
                                                     suggestion
-                                                );
-                                                setShowProblemSuggestions(
-                                                    false
-                                                );
-                                            }}
-                                        >
-                                            {suggestion}
-                                        </button>
-                                    ))}
+                                                }
+                                                type="button"
+                                                className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
+                                                onMouseDown={(
+                                                    e
+                                                ) =>
+                                                    e.preventDefault()
+                                                }
+                                                onClick={() => {
+                                                    setData(
+                                                        "problem_description",
+                                                        suggestion
+                                                    );
+
+                                                    setShowProblemSuggestions(
+                                                        false
+                                                    );
+                                                }}
+                                            >
+                                                {
+                                                    suggestion
+                                                }
+                                            </button>
+                                        )
+                                    )}
                                 </div>
                             )}
                     </div>
 
                     <div>
-                        <label>Status</label>
+                        <label>
+                            Status
+                        </label>
+
                         <select
                             className="w-full rounded border px-3 py-2"
-                            value={data.status}
+                            value={
+                                data.status
+                            }
                             onFocus={() =>
-                                setShowProblemSuggestions(false)
+                                setShowProblemSuggestions(
+                                    false
+                                )
                             }
                             onChange={(e) =>
-                                setData("status", e.target.value)
+                                setData(
+                                    "status",
+                                    e.target.value
+                                )
                             }
                         >
-                            <option value="Open">Open</option>
-                            <option value="Ongoing">Ongoing</option>
-                            <option value="Resolved">Resolved</option>
+                            <option value="Open">
+                                Open
+                            </option>
+
+                            <option value="Ongoing">
+                                Ongoing
+                            </option>
+
+                            <option value="Resolved">
+                                Resolved
+                            </option>
                         </select>
                     </div>
 
-                    {data.status === "Ongoing" && (
+                    {data.status ===
+                        "Ongoing" && (
                         <div>
-                            <label>Progress Update</label>
+                            <label>
+                                Assigned IT
+                                Personnel
+                            </label>
+
+                            <input
+                                type="text"
+                                readOnly
+                                className="w-full rounded border px-3 py-2 bg-gray-100"
+                                value={
+                                    assignedITName
+                                }
+                            />
+                        </div>
+                    )}
+
+                    {data.status ===
+                        "Ongoing" && (
+                        <div>
+                            <label>
+                                Progress
+                                Update
+                            </label>
+
                             <input
                                 className="w-full rounded border px-3 py-2"
                                 placeholder="Enter progress update"
-                                value={data.progress_update || ""}
+                                value={
+                                    data.progress_update ||
+                                    ""
+                                }
                                 onFocus={() =>
-                                    setShowProblemSuggestions(false)
+                                    setShowProblemSuggestions(
+                                        false
+                                    )
                                 }
                                 onChange={(e) =>
                                     setData(
                                         "progress_update",
-                                        e.target.value
+                                        e.target
+                                            .value
                                     )
                                 }
                             />
@@ -345,13 +583,20 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                     )}
 
                     <div>
-                        <label>Date Opened</label>
+                        <label>
+                            Date Opened
+                        </label>
+
                         <input
                             type="date"
                             className="w-full rounded border px-3 py-2"
-                            value={data.date_opened}
+                            value={
+                                data.date_opened
+                            }
                             onFocus={() =>
-                                setShowProblemSuggestions(false)
+                                setShowProblemSuggestions(
+                                    false
+                                )
                             }
                             onChange={(e) =>
                                 setData(
@@ -362,72 +607,111 @@ export default function EditTicketModal({ show, ticket, onClose }) {
                         />
                     </div>
 
-                    {data.status === "Resolved" && (
+                    {data.status ===
+                        "Resolved" && (
                         <div>
-                            <label>Resolved At</label>
+                            <label>
+                                Resolved At
+                            </label>
+
                             <input
                                 type="date"
                                 className="w-full rounded border px-3 py-2"
-                                value={data.resolved_at}
+                                value={
+                                    data.resolved_at
+                                }
                                 onFocus={() =>
-                                    setShowProblemSuggestions(false)
+                                    setShowProblemSuggestions(
+                                        false
+                                    )
                                 }
                                 onChange={(e) =>
                                     setData(
                                         "resolved_at",
-                                        e.target.value
+                                        e.target
+                                            .value
                                     )
                                 }
                             />
                         </div>
                     )}
 
-                    {data.status === "Resolved" && (
+                    {data.status ===
+                        "Resolved" && (
                         <div>
-                            <label>Problem Solution</label>
+                            <label>
+                                Problem
+                                Solution
+                            </label>
+
                             <input
                                 className="w-full rounded border px-3 py-2"
                                 placeholder="Enter solution"
-                                value={data.problem_solution || ""}
+                                value={
+                                    data.problem_solution ||
+                                    ""
+                                }
                                 onFocus={() =>
-                                    setShowProblemSuggestions(false)
+                                    setShowProblemSuggestions(
+                                        false
+                                    )
                                 }
                                 onChange={(e) =>
                                     setData(
                                         "problem_solution",
-                                        e.target.value
+                                        e.target
+                                            .value
                                     )
                                 }
                             />
                         </div>
                     )}
 
-                    {data.status === "Resolved" && (
+                    {data.status ===
+                        "Resolved" && (
                         <div>
-                            <label>Resolved By</label>
+                            <label>
+                                Resolved By
+                            </label>
+
                             <select
                                 className="w-full rounded border px-3 py-2 text-[#101E33]"
-                                value={data.resolved_by}
+                                value={
+                                    data.resolved_by
+                                }
                                 onFocus={() =>
-                                    setShowProblemSuggestions(false)
+                                    setShowProblemSuggestions(
+                                        false
+                                    )
                                 }
                                 onChange={(e) =>
                                     setData(
                                         "resolved_by",
-                                        e.target.value
+                                        e.target
+                                            .value
                                     )
                                 }
                             >
-                                <option value="">Select User</option>
+                                <option value="">
+                                    Select User
+                                </option>
 
-                                {users.map((user) => (
-                                    <option
-                                        key={user.id}
-                                        value={String(user.id)}
-                                    >
-                                        {user.name}
-                                    </option>
-                                ))}
+                                {users.map(
+                                    (user) => (
+                                        <option
+                                            key={
+                                                user.id
+                                            }
+                                            value={String(
+                                                user.id
+                                            )}
+                                        >
+                                            {
+                                                user.name
+                                            }
+                                        </option>
+                                    )
+                                )}
                             </select>
                         </div>
                     )}
@@ -444,7 +728,10 @@ export default function EditTicketModal({ show, ticket, onClose }) {
 
                     <button
                         type="submit"
-                        disabled={!hasChanges || processing}
+                        disabled={
+                            !hasChanges ||
+                            processing
+                        }
                         className={`px-6 py-2 rounded text-white ${
                             hasChanges
                                 ? "bg-green-500 hover:bg-green-600"

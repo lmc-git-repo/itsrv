@@ -1,12 +1,21 @@
 import { Head, router, useForm } from "@inertiajs/react";
 import TicketSuggestions from "@/Constants/TicketSuggestions";
 import { useEffect, useState } from "react";
+import {
+    useEmployeeLanguage,
+    translateUI,
+    translateCategory,
+    translateStatus,
+    TranslatedEmployeeText,
+    useTranslatedEmployeeText,
+} from "@/Utils/EmployeeLanguage";
 
 export default function EmployeeTicketsIndex({
     tickets = [],
     tracking_code = "",
     submitted_ticket_no = "",
     activeEmployees = [],
+    itStaffStatuses = [],
 }) {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [editTicket, setEditTicket] = useState(null);
@@ -23,6 +32,40 @@ export default function EmployeeTicketsIndex({
         setVisibleSubmittedTicketNo,
     ] = useState(submitted_ticket_no || "");
 
+    const {
+        language,
+        setLanguage,
+    } = useEmployeeLanguage();
+
+    const t = (key) =>
+        translateUI(language, key);
+
+    const [monitorEmployeeName, setMonitorEmployeeName] =
+        useState(() => {
+            if (typeof window === "undefined") {
+                return "";
+            }
+
+            return (
+                localStorage.getItem(
+                    "employee_monitor_name"
+                ) || ""
+            );
+        });
+
+    const [viewingDepartment, setViewingDepartment] =
+        useState(() => {
+            if (typeof window === "undefined") {
+                return "";
+            }
+
+            return (
+                localStorage.getItem(
+                    "employee_monitor_department"
+                ) || ""
+            );
+        });
+
     const formatDateTime = (date) => {
         if (!date) return "—";
 
@@ -37,31 +80,40 @@ export default function EmployeeTicketsIndex({
             return "—";
         }
 
-        return parsedDate.toLocaleString("en-US", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-        });
+        return parsedDate.toLocaleString(
+            language === "ja"
+                ? "ja-JP"
+                : "en-US",
+            {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12:
+                    language !== "ja",
+            }
+        );
     };
 
     const splitProblemDescription = (description) => {
         if (!description) {
             return {
                 problemDescription: "",
-                remarks: "No remarks provided.",
+                remarks:
+                    t("noRemarksProvided"),
             };
         }
 
         const marker = "\n\nRemarks:";
-        const markerIndex = description.indexOf(marker);
+        const markerIndex =
+            description.indexOf(marker);
 
         if (markerIndex === -1) {
             return {
                 problemDescription: description,
-                remarks: "No remarks provided.",
+                remarks:
+                    t("noRemarksProvided"),
             };
         }
 
@@ -71,14 +123,42 @@ export default function EmployeeTicketsIndex({
                 .trim(),
             remarks:
                 description
-                    .substring(markerIndex + marker.length)
-                    .trim() || "No remarks provided.",
+                    .substring(
+                        markerIndex +
+                            marker.length
+                    )
+                    .trim() ||
+                t("noRemarksProvided"),
         };
     };
 
     const selectedTicketDetails =
         splitProblemDescription(
             selectedTicket?.problem_description
+        );
+
+    const translatedSelectedProblem =
+        useTranslatedEmployeeText(
+            selectedTicketDetails.problemDescription,
+            language
+        );
+
+    const translatedSelectedRemarks =
+        useTranslatedEmployeeText(
+            selectedTicketDetails.remarks,
+            language
+        );
+
+    const translatedSelectedProgress =
+        useTranslatedEmployeeText(
+            selectedTicket?.progress_update || "",
+            language
+        );
+
+    const translatedSelectedSolution =
+        useTranslatedEmployeeText(
+            selectedTicket?.problem_solution || "",
+            language
         );
 
     const {
@@ -121,8 +201,54 @@ export default function EmployeeTicketsIndex({
         TicketSuggestions.employee
     );
 
+    const employeeSuggestions =
+        language === "ja"
+            ? TicketSuggestions.employeeJapanese
+            : TicketSuggestions.employee;
+
     useEffect(() => {
-        setMonitorTrackingCode(tracking_code || "");
+        if (!monitorEmployeeName) return;
+
+        const currentEmployee = activeEmployees.find(
+            (employee) =>
+                employee.name ===
+                monitorEmployeeName
+        );
+
+        if (!currentEmployee) return;
+
+        const currentDepartment =
+            currentEmployee.department || "";
+
+        if (
+            currentDepartment !==
+            viewingDepartment
+        ) {
+            setViewingDepartment(
+                currentDepartment
+            );
+
+            localStorage.setItem(
+                "employee_monitor_department",
+                currentDepartment
+            );
+
+            setMonitorTrackingCode("");
+
+            localStorage.removeItem(
+                "employee_tracking_code"
+            );
+        }
+    }, [
+        activeEmployees,
+        monitorEmployeeName,
+        viewingDepartment,
+    ]);
+
+    useEffect(() => {
+        setMonitorTrackingCode(
+            tracking_code || ""
+        );
     }, [tracking_code]);
 
     useEffect(() => {
@@ -136,7 +262,8 @@ export default function EmployeeTicketsIndex({
             setVisibleSubmittedTicketNo("");
         }, 5000);
 
-        return () => clearTimeout(timeout);
+        return () =>
+            clearTimeout(timeout);
     }, [submitted_ticket_no]);
 
     useEffect(() => {
@@ -151,7 +278,8 @@ export default function EmployeeTicketsIndex({
                     editTicket.category ||
                     "",
                 problem_description:
-                    editTicket.problem_description || "",
+                    editTicket.problem_description ||
+                    "",
                 tracking_code:
                     tracking_code ||
                     editTicket.tracking_code ||
@@ -159,34 +287,84 @@ export default function EmployeeTicketsIndex({
                     "",
             });
 
-            setShowEditProblemSuggestions(false);
+            setShowEditProblemSuggestions(
+                false
+            );
         }
     }, [editTicket]);
 
     useEffect(() => {
+        if (!data.employee_name) return;
+
+        const currentEmployee =
+            activeEmployees.find(
+                (employee) =>
+                    employee.name ===
+                    data.employee_name
+            );
+
+        if (!currentEmployee) {
+            setData({
+                ...data,
+                employee_name: "",
+                department: "",
+            });
+
+            setMonitorTrackingCode("");
+
+            return;
+        }
+
+        if (
+            data.department !==
+            currentEmployee.department
+        ) {
+            setData(
+                "department",
+                currentEmployee.department || ""
+            );
+
+            setMonitorTrackingCode("");
+        }
+    }, [
+        activeEmployees,
+        data.employee_name,
+    ]);
+
+    useEffect(() => {
         const interval = setInterval(() => {
             router.reload({
-                only: ["tickets"],
+                only: [
+                    "tickets",
+                    "activeEmployees",
+                    "itStaffStatuses",
+                ],
                 preserveScroll: true,
                 preserveState: true,
             });
         }, 5000);
 
-        return () => clearInterval(interval);
+        return () =>
+            clearInterval(interval);
     }, []);
 
     useEffect(() => {
         if (!editTicket) return;
 
-        const updatedTicket = tickets.find(
-            (ticket) => ticket.id === editTicket.id
-        );
+        const updatedTicket =
+            tickets.find(
+                (ticket) =>
+                    ticket.id ===
+                    editTicket.id
+            );
 
         if (
             !updatedTicket ||
             updatedTicket.status !== "Open"
         ) {
-            setShowEditProblemSuggestions(false);
+            setShowEditProblemSuggestions(
+                false
+            );
             setEditTicket(null);
             return;
         }
@@ -197,12 +375,17 @@ export default function EmployeeTicketsIndex({
     useEffect(() => {
         if (!selectedTicket) return;
 
-        const updatedTicket = tickets.find(
-            (ticket) => ticket.id === selectedTicket.id
-        );
+        const updatedTicket =
+            tickets.find(
+                (ticket) =>
+                    ticket.id ===
+                    selectedTicket.id
+            );
 
         if (updatedTicket) {
-            setSelectedTicket(updatedTicket);
+            setSelectedTicket(
+                updatedTicket
+            );
         }
     }, [tickets]);
 
@@ -211,47 +394,80 @@ export default function EmployeeTicketsIndex({
 
         transform((formData) => ({
             ...formData,
-            problem_description: formData.remarks.trim()
-                ? `${formData.problem_description}\n\nRemarks: ${formData.remarks}`
-                : formData.problem_description,
+            problem_description:
+                formData.remarks.trim()
+                    ? `${formData.problem_description}\n\nRemarks: ${formData.remarks}`
+                    : formData.problem_description,
         }));
 
-        post(route("employee.tickets.store"), {
-            preserveScroll: true,
-            onSuccess: () => {
-                reset();
-                setShowProblemSuggestions(false);
-                setMonitorTrackingCode("");
-                localStorage.removeItem(
-                    "employee_tracking_code"
-                );
+        const submittedEmployeeName =
+            data.employee_name;
 
-                router.get(
-                    route("employee.tickets"),
-                    {},
-                    {
-                        preserveScroll: true,
-                        preserveState: false,
-                    }
-                );
-            },
-        });
+        const submittedDepartment =
+            data.department;
+
+        post(
+            route(
+                "employee.tickets.store"
+            ),
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    localStorage.setItem(
+                        "employee_monitor_name",
+                        submittedEmployeeName
+                    );
+
+                    localStorage.setItem(
+                        "employee_monitor_department",
+                        submittedDepartment
+                    );
+
+                    setMonitorEmployeeName(
+                        submittedEmployeeName
+                    );
+
+                    setViewingDepartment(
+                        submittedDepartment
+                    );
+
+                    reset();
+
+                    setShowProblemSuggestions(
+                        false
+                    );
+
+                    setMonitorTrackingCode(
+                        ""
+                    );
+
+                    localStorage.removeItem(
+                        "employee_tracking_code"
+                    );
+                },
+            }
+        );
     };
 
     const checkTicketStatus = (e) => {
         e.preventDefault();
 
-        if (!monitorTrackingCode.trim()) return;
+        if (!viewingDepartment) return;
+
+        if (
+            !monitorTrackingCode.trim()
+        ) {
+            localStorage.removeItem(
+                "employee_tracking_code"
+            );
+
+            return;
+        }
 
         localStorage.setItem(
             "employee_tracking_code",
             monitorTrackingCode.trim()
         );
-
-        router.get(route("employee.tickets"), {
-            tracking_code:
-                monitorTrackingCode.trim(),
-        });
     };
 
     const updateTicket = (e) => {
@@ -272,7 +488,10 @@ export default function EmployeeTicketsIndex({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    setShowEditProblemSuggestions(false);
+                    setShowEditProblemSuggestions(
+                        false
+                    );
+
                     setEditTicket(null);
                 },
             }
@@ -295,15 +514,97 @@ export default function EmployeeTicketsIndex({
         }
     };
 
-    const visibleTickets = tickets;
+    const departmentTickets =
+        viewingDepartment
+            ? tickets.filter(
+                  (ticket) =>
+                      ticket.department ===
+                      viewingDepartment
+              )
+            : [];
 
-    return (
+    const searchKeyword =
+        monitorTrackingCode
+            .trim()
+            .toLowerCase();
+
+    const visibleTickets =
+        searchKeyword
+            ? departmentTickets.filter(
+                  (ticket) =>
+                      ticket.ticket_no
+                          ?.toLowerCase()
+                          .includes(
+                              searchKeyword
+                          ) ||
+                      ticket.employee_name
+                          ?.toLowerCase()
+                          .includes(
+                              searchKeyword
+                          )
+              )
+            : departmentTickets;
+
+        return (
         <>
             <Head title="Employee Ticket Form" />
 
             <div className="employee-ticket-page">
                 <div className="employee-ticket-container">
                     <section className="employee-ticket-form-card">
+                        <div className="mb-5 rounded-xl border border-white/10 bg-white/5 px-5 py-3">
+                            <h2 className="mb-3 text-center text-sm font-bold text-white">
+                                {t(
+                                    "availableITStaff"
+                                )}
+                            </h2>
+
+                            <div className="grid grid-cols-3 gap-3">
+                                {itStaffStatuses.map(
+                                    (staff) => (
+                                        <div
+                                            key={
+                                                staff.name
+                                            }
+                                            className="flex items-center justify-center gap-2"
+                                        >
+                                            <span
+                                                className={`h-3.5 w-3.5 flex-shrink-0 rounded-full ${
+                                                    staff.on_duty
+                                                        ? "bg-green-500"
+                                                        : "bg-gray-400"
+                                                }`}
+                                            />
+
+                                            <span className="whitespace-nowrap text-sm font-semibold text-white">
+                                                {
+                                                    staff.name
+                                                }
+                                            </span>
+                                        </div>
+                                    )
+                                )}
+                            </div>
+
+                            <div className="mt-3 flex items-center justify-center gap-5 text-xs text-white/70">
+                                <span className="flex items-center gap-1.5">
+                                    <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
+
+                                    {t(
+                                        "onDuty"
+                                    )}
+                                </span>
+
+                                <span className="flex items-center gap-1.5">
+                                    <span className="h-2.5 w-2.5 rounded-full bg-gray-400" />
+
+                                    {t(
+                                        "offDuty"
+                                    )}
+                                </span>
+                            </div>
+                        </div>
+
                         <div className="employee-ticket-header">
                             <img
                                 src="/images/LMC-Logo-Wht.png"
@@ -311,22 +612,105 @@ export default function EmployeeTicketsIndex({
                                 className="employee-ticket-logo"
                             />
 
-                            <div>
-                                <h1>
-                                    Employee Ticket Form
-                                </h1>
+                            <div className="flex-1">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <h1>
+                                            {t(
+                                                "employeeTicketForm"
+                                            )}
+                                        </h1>
 
-                                <p>
-                                    Submit your concern
-                                    directly to IT Department
-                                </p>
+                                        <p>
+                                            {t(
+                                                "employeeTicketSubtitle"
+                                            )}
+                                        </p>
+                                    </div>
+
+                                    <div
+                                        style={{
+                                            display:
+                                                "flex",
+                                            alignItems:
+                                                "center",
+                                            gap: "12px",
+                                            fontSize:
+                                                "13px",
+                                            fontWeight:
+                                                "700",
+                                            color:
+                                                "#ffffff",
+                                            whiteSpace:
+                                                "nowrap",
+                                            paddingTop:
+                                                "18px",
+                                        }}
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setLanguage(
+                                                    "ja"
+                                                )
+                                            }
+                                            style={{
+                                                opacity:
+                                                    language ===
+                                                    "ja"
+                                                        ? 1
+                                                        : 0.55,
+                                                textDecoration:
+                                                    language ===
+                                                    "ja"
+                                                        ? "underline"
+                                                        : "none",
+                                            }}
+                                        >
+                                            JAPANESE
+                                        </button>
+
+                                        <span
+                                            style={{
+                                                opacity:
+                                                    0.6,
+                                            }}
+                                        >
+                                            |
+                                        </span>
+
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setLanguage(
+                                                    "en"
+                                                )
+                                            }
+                                            style={{
+                                                opacity:
+                                                    language ===
+                                                    "en"
+                                                        ? 1
+                                                        : 0.55,
+                                                textDecoration:
+                                                    language ===
+                                                    "en"
+                                                        ? "underline"
+                                                        : "none",
+                                            }}
+                                        >
+                                            ENGLISH
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         {visibleSubmittedTicketNo && (
                             <div className="employee-ticket-alert">
-                                Your ticket was submitted
-                                successfully. Tracking Code:{" "}
+                                {t(
+                                    "submittedSuccessfully"
+                                )}{" "}
                                 <strong>
                                     {
                                         visibleSubmittedTicketNo
@@ -340,43 +724,75 @@ export default function EmployeeTicketsIndex({
                             className="employee-ticket-form"
                         >
                             <div>
-                                <label>Employee Name</label>
+                                <label>
+                                    {t(
+                                        "employeeName"
+                                    )}
+                                </label>
 
                                 <select
-                                    value={data.employee_name}
+                                    value={
+                                        data.employee_name
+                                    }
                                     onFocus={() =>
                                         setShowProblemSuggestions(
                                             false
                                         )
                                     }
-                                    onChange={(e) => {
+                                    onChange={(
+                                        e
+                                    ) => {
                                         const selectedEmployee =
                                             activeEmployees.find(
                                                 (
                                                     employee
                                                 ) =>
                                                     employee.name ===
-                                                    e.target
+                                                    e
+                                                        .target
                                                         .value
                                             );
 
                                         setData({
                                             ...data,
                                             employee_name:
-                                                e.target.value,
+                                                e
+                                                    .target
+                                                    .value,
                                             department:
                                                 selectedEmployee?.department ||
                                                 "",
                                         });
+
+                                        if (
+                                            selectedEmployee
+                                        ) {
+                                            setMonitorEmployeeName(
+                                                selectedEmployee.name
+                                            );
+
+                                            setViewingDepartment(
+                                                selectedEmployee.department ||
+                                                    ""
+                                            );
+                                        }
+
+                                        setMonitorTrackingCode(
+                                            ""
+                                        );
                                     }}
                                     required
                                 >
                                     <option value="">
-                                        Select Employee Name
+                                        {t(
+                                            "selectEmployeeName"
+                                        )}
                                     </option>
 
                                     {activeEmployees.map(
-                                        (employee) => (
+                                        (
+                                            employee
+                                        ) => (
                                             <option
                                                 key={
                                                     employee.id
@@ -396,40 +812,52 @@ export default function EmployeeTicketsIndex({
                                 {activeEmployees.length ===
                                     0 && (
                                     <div className="employee-ticket-validation-message">
-                                        You cannot submit a
-                                        ticket because there
-                                        are no active employees
-                                        registered. Please
-                                        contact IT Department
-                                        for assistance.
+                                        {t(
+                                            "noActiveEmployees"
+                                        )}
                                     </div>
                                 )}
                             </div>
 
                             <div>
-                                <label>Department</label>
+                                <label>
+                                    {t(
+                                        "department"
+                                    )}
+                                </label>
 
                                 <select
-                                    value={data.department}
+                                    value={
+                                        data.department
+                                    }
                                     onFocus={() =>
                                         setShowProblemSuggestions(
                                             false
                                         )
                                     }
-                                    onChange={(e) =>
+                                    onChange={(
+                                        e
+                                    ) =>
                                         setData(
                                             "department",
-                                            e.target.value
+                                            e
+                                                .target
+                                                .value
                                         )
                                     }
                                     required
+                                    disabled
                                 >
                                     <option value="">
-                                        Select Department
+                                        {t(
+                                            "selectDepartment"
+                                        )}
                                     </option>
 
                                     {departments.map(
-                                        (department) => (
+                                        (
+                                            department
+                                        ) => (
                                             <option
                                                 key={
                                                     department
@@ -448,20 +876,31 @@ export default function EmployeeTicketsIndex({
                             </div>
 
                             <div>
-                                <label>Category</label>
+                                <label>
+                                    {t(
+                                        "category"
+                                    )}
+                                </label>
 
                                 <select
-                                    value={data.category}
+                                    value={
+                                        data.category
+                                    }
                                     onFocus={() =>
                                         setShowProblemSuggestions(
                                             false
                                         )
                                     }
-                                    onChange={(e) => {
+                                    onChange={(
+                                        e
+                                    ) => {
                                         setData(
                                             "category",
-                                            e.target.value
+                                            e
+                                                .target
+                                                .value
                                         );
+
                                         setShowProblemSuggestions(
                                             false
                                         );
@@ -469,16 +908,27 @@ export default function EmployeeTicketsIndex({
                                     required
                                 >
                                     <option value="">
-                                        Select Category
+                                        {t(
+                                            "selectCategory"
+                                        )}
                                     </option>
 
                                     {categories.map(
-                                        (category) => (
+                                        (
+                                            category
+                                        ) => (
                                             <option
-                                                key={category}
-                                                value={category}
+                                                key={
+                                                    category
+                                                }
+                                                value={
+                                                    category
+                                                }
                                             >
-                                                {category}
+                                                {translateCategory(
+                                                    category,
+                                                    language
+                                                )}
                                             </option>
                                         )
                                     )}
@@ -487,26 +937,29 @@ export default function EmployeeTicketsIndex({
 
                             <div>
                                 <label>
-                                    Problem Description
+                                    {t(
+                                        "problemDescription"
+                                    )}
                                 </label>
 
                                 {showProblemSuggestions &&
                                     data.category &&
-                                    TicketSuggestions
-                                        .employee[
-                                        data.category
-                                    ]?.length > 0 && (
+                                    employeeSuggestions[
+                                        data
+                                            .category
+                                    ]?.length >
+                                        0 && (
                                         <div className="mt-2 mb-3 space-y-2">
-                                            {TicketSuggestions.employee[
-                                                data.category
+                                            {employeeSuggestions[
+                                                data
+                                                    .category
                                             ].map(
                                                 (
-                                                    suggestion
+                                                    suggestion,
+                                                    index
                                                 ) => (
                                                     <button
-                                                        key={
-                                                            suggestion
-                                                        }
+                                                        key={`${data.category}-${index}`}
                                                         type="button"
                                                         className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
                                                         onMouseDown={(
@@ -519,6 +972,7 @@ export default function EmployeeTicketsIndex({
                                                                 "problem_description",
                                                                 suggestion
                                                             );
+
                                                             setShowProblemSuggestions(
                                                                 false
                                                             );
@@ -543,11 +997,16 @@ export default function EmployeeTicketsIndex({
                                             true
                                         )
                                     }
-                                    onChange={(e) => {
+                                    onChange={(
+                                        e
+                                    ) => {
                                         setData(
                                             "problem_description",
-                                            e.target.value
+                                            e
+                                                .target
+                                                .value
                                         );
+
                                         setShowProblemSuggestions(
                                             false
                                         );
@@ -557,23 +1016,35 @@ export default function EmployeeTicketsIndex({
                             </div>
 
                             <div>
-                                <label>Remarks</label>
+                                <label>
+                                    {t(
+                                        "remarks"
+                                    )}
+                                </label>
 
                                 <textarea
                                     rows="3"
-                                    value={data.remarks}
+                                    value={
+                                        data.remarks
+                                    }
                                     onFocus={() =>
                                         setShowProblemSuggestions(
                                             false
                                         )
                                     }
-                                    onChange={(e) =>
+                                    onChange={(
+                                        e
+                                    ) =>
                                         setData(
                                             "remarks",
-                                            e.target.value
+                                            e
+                                                .target
+                                                .value
                                         )
                                     }
-                                    placeholder="Add more details if needed..."
+                                    placeholder={t(
+                                        "remarksPlaceholder"
+                                    )}
                                 />
                             </div>
 
@@ -584,7 +1055,9 @@ export default function EmployeeTicketsIndex({
                                     !data.employee_name
                                 }
                             >
-                                Submit Ticket
+                                {t(
+                                    "submitTicket"
+                                )}
                             </button>
                         </form>
                     </section>
@@ -592,24 +1065,40 @@ export default function EmployeeTicketsIndex({
                     <section className="employee-ticket-monitor-card">
                         <div className="employee-ticket-monitor-header">
                             <h2>
-                                Ticket Monitoring Table
+                                {t(
+                                    "ticketMonitoringTable"
+                                )}
                             </h2>
 
                             <p>
-                                Enter your ticket number or
-                                employee name to check ticket
-                                history. Ticket status updates
-                                automatically.
+                                {t(
+                                    "ticketMonitoringDescription"
+                                )}
+                            </p>
+
+                            <p className="mt-2 font-semibold">
+                                {t(
+                                    "viewingDepartment"
+                                )}
+                                :{" "}
+                                {viewingDepartment ||
+                                    t(
+                                        "selectEmployeeFirst"
+                                    )}
                             </p>
                         </div>
 
                         <form
-                            onSubmit={checkTicketStatus}
+                            onSubmit={
+                                checkTicketStatus
+                            }
                             className="employee-ticket-monitor-form"
                         >
                             <div>
                                 <label>
-                                    Check Ticket Status
+                                    {t(
+                                        "checkTicketStatus"
+                                    )}
                                 </label>
 
                                 <input
@@ -617,109 +1106,190 @@ export default function EmployeeTicketsIndex({
                                     value={
                                         monitorTrackingCode
                                     }
-                                    onChange={(e) => {
+                                    onChange={(
+                                        e
+                                    ) => {
                                         const value =
                                             e.target.value.toUpperCase();
 
                                         setMonitorTrackingCode(
                                             value
                                         );
-
-                                        if (!value.trim()) {
-                                            router.get(
-                                                route(
-                                                    "employee.tickets"
-                                                ),
-                                                {},
-                                                {
-                                                    preserveScroll: true,
-                                                    preserveState: false,
-                                                }
-                                            );
-                                        }
                                     }}
-                                    placeholder="Enter ticket # or employee name"
+                                    placeholder={t(
+                                        "ticketSearchPlaceholder"
+                                    )}
+                                    disabled={
+                                        !viewingDepartment
+                                    }
                                 />
                             </div>
 
-                            <button type="submit">
-                                Check Status
+                            <button
+                                type="submit"
+                                disabled={
+                                    !viewingDepartment
+                                }
+                            >
+                                {t(
+                                    "checkStatus"
+                                )}
                             </button>
                         </form>
 
                         <div className="employee-ticket-list">
-                            {visibleTickets.length === 0 && (
+                            {visibleTickets.length ===
+                                0 && (
                                 <div className="employee-ticket-empty">
-                                    No tickets found.
+                                    {viewingDepartment
+                                        ? t(
+                                              "noTicketsDepartment"
+                                          )
+                                        : t(
+                                              "selectEmployeeToView"
+                                          )}
                                 </div>
                             )}
 
-                            {visibleTickets.map((ticket) => (
-                                <div
-                                    key={ticket.id}
-                                    className="employee-ticket-item"
-                                >
-                                    <div className="employee-ticket-item-top">
-                                        <strong>
-                                            {
-                                                ticket.ticket_no
-                                            }
-                                        </strong>
-
-                                        <span
-                                            className={statusClass(
-                                                ticket.status
-                                            )}
-                                        >
-                                            {ticket.status}
-                                        </span>
-                                    </div>
-
-                                    <p>
-                                        {
-                                            ticket.problem_description
+                            {visibleTickets.map(
+                                (
+                                    ticket
+                                ) => (
+                                    <div
+                                        key={
+                                            ticket.id
                                         }
-                                    </p>
+                                        className="employee-ticket-item"
+                                    >
+                                        <div className="employee-ticket-item-top">
+                                            <strong>
+                                                {
+                                                    ticket.ticket_no
+                                                }
+                                            </strong>
 
-                                    <small>
-                                        Employee:{" "}
-                                        {ticket.employee_name ||
-                                            "—"}{" "}
-                                        | Department:{" "}
-                                        {ticket.department ||
-                                            "—"}
-                                    </small>
+                                            <span
+                                                className={statusClass(
+                                                    ticket.status
+                                                )}
+                                            >
+                                                {translateStatus(
+                                                    ticket.status,
+                                                    language
+                                                )}
+                                            </span>
+                                        </div>
 
-                                    <div className="employee-ticket-actions">
-                                        <button
-                                            type="button"
-                                            className="employee-ticket-view-btn"
-                                            onClick={() =>
-                                                setSelectedTicket(
-                                                    ticket
-                                                )
-                                            }
-                                        >
-                                            View Details
-                                        </button>
+                                        <p>
+                                            <TranslatedEmployeeText
+                                                text={
+                                                    splitProblemDescription(
+                                                        ticket.problem_description
+                                                    )
+                                                        .problemDescription
+                                                }
+                                                language={
+                                                    language
+                                                }
+                                            />
+                                        </p>
 
-                                        {ticket.status ===
-                                            "Open" && (
+                                        <small>
+                                            {t(
+                                                "employeeName"
+                                            )}
+                                            :{" "}
+                                            {ticket.employee_name ||
+                                                "—"}{" "}
+                                            |{" "}
+                                            {t(
+                                                "department"
+                                            )}
+                                            :{" "}
+                                            {ticket.department ||
+                                                "—"}
+                                        </small>
+
+                                        <div className="employee-ticket-actions">
                                             <button
                                                 type="button"
-                                                className="employee-ticket-edit-btn"
+                                                className="employee-ticket-view-btn"
                                                 onClick={() =>
-                                                    setEditTicket(
+                                                    setSelectedTicket(
                                                         ticket
                                                     )
                                                 }
                                             >
-                                                ✏️ Edit
+                                                {t(
+                                                    "viewDetails"
+                                                )}
                                             </button>
-                                        )}
+
+                                            {ticket.status ===
+                                                "Open" && (
+                                                <button
+                                                    type="button"
+                                                    className="employee-ticket-edit-btn"
+                                                    onClick={() =>
+                                                        setEditTicket(
+                                                            ticket
+                                                        )
+                                                    }
+                                                >
+                                                    ✏️{" "}
+                                                    {t(
+                                                        "edit"
+                                                    )}
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {ticket.status ===
+                                            "Ongoing" &&
+                                            ticket
+                                                .assignee
+                                                ?.name && (
+                                                <div
+                                                    style={{
+                                                        display:
+                                                            "flex",
+                                                        justifyContent:
+                                                            "flex-end",
+                                                        alignItems:
+                                                            "flex-end",
+                                                        marginTop:
+                                                            "12px",
+                                                        paddingTop:
+                                                            "4px",
+                                                    }}
+                                                >
+                                                    <span
+                                                        style={{
+                                                            fontSize:
+                                                                "15px",
+                                                            fontWeight:
+                                                                "700",
+                                                            color:
+                                                                "#374151",
+                                                            whiteSpace:
+                                                                "nowrap",
+                                                        }}
+                                                    >
+                                                        {t(
+                                                            "assignedIT"
+                                                        )}
+                                                        :{" "}
+                                                        {
+                                                            ticket
+                                                                .assignee
+                                                                .name
+                                                        }
+                                                    </span>
+                                                </div>
+                                            )}
                                     </div>
-                                </div>
-                            ))}
+                                )
+                            )}
                         </div>
                     </section>
                 </div>
@@ -730,19 +1300,20 @@ export default function EmployeeTicketsIndex({
                         width: "100%",
                         maxWidth: "1600px",
                         minHeight: "58px",
-                        margin: "55px auto 60px",
+                        margin:
+                            "55px auto 60px",
                         padding: "0 24px",
                         borderRadius: "10px",
                         display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        textAlign: "center",
+                        alignItems:
+                            "center",
+                        justifyContent:
+                            "center",
+                        textAlign:
+                            "center",
                     }}
                 >
-                    If your ticket concern submitted through
-                    this form is not addressed immediately,
-                    please call local 41 or email
-                    itd@lagunametts.com through Outlook.
+                    {t("footer")}
                 </footer>
             </div>
 
@@ -751,7 +1322,9 @@ export default function EmployeeTicketsIndex({
                     <div
                         className="absolute inset-0 bg-black/60"
                         onClick={() =>
-                            setSelectedTicket(null)
+                            setSelectedTicket(
+                                null
+                            )
                         }
                     />
 
@@ -760,20 +1333,27 @@ export default function EmployeeTicketsIndex({
                             type="button"
                             className="absolute top-4 right-4 text-gray-500 hover:text-black"
                             onClick={() =>
-                                setSelectedTicket(null)
+                                setSelectedTicket(
+                                    null
+                                )
                             }
                         >
                             ✕
                         </button>
 
                         <h2 className="text-xl font-bold text-center mb-6 text-[#101E33]">
-                            Ticket Details
+                            {t(
+                                "ticketDetails"
+                            )}
                         </h2>
 
                         <div className="space-y-3 text-base text-[#101E33]">
                             <p>
                                 <strong>
-                                    Ticket No:
+                                    {t(
+                                        "ticketNo"
+                                    )}
+                                    :
                                 </strong>{" "}
                                 {
                                     selectedTicket.ticket_no
@@ -782,7 +1362,10 @@ export default function EmployeeTicketsIndex({
 
                             <p>
                                 <strong>
-                                    Employee Name:
+                                    {t(
+                                        "employeeName"
+                                    )}
+                                    :
                                 </strong>{" "}
                                 {
                                     selectedTicket.employee_name
@@ -791,7 +1374,10 @@ export default function EmployeeTicketsIndex({
 
                             <p>
                                 <strong>
-                                    Department:
+                                    {t(
+                                        "department"
+                                    )}
+                                    :
                                 </strong>{" "}
                                 {
                                     selectedTicket.department
@@ -800,21 +1386,57 @@ export default function EmployeeTicketsIndex({
 
                             <p>
                                 <strong>
-                                    Category:
+                                    {t(
+                                        "category"
+                                    )}
+                                    :
                                 </strong>{" "}
-                                {
-                                    selectedTicket.category
-                                }
-                            </p>
-
-                            <p>
-                                <strong>Status:</strong>{" "}
-                                {selectedTicket.status}
+                                {translateCategory(
+                                    selectedTicket.employee_category ||
+                                        selectedTicket.category,
+                                    language
+                                )}
                             </p>
 
                             <p>
                                 <strong>
-                                    Date Opened:
+                                    {t(
+                                        "status"
+                                    )}
+                                    :
+                                </strong>{" "}
+                                {translateStatus(
+                                    selectedTicket.status,
+                                    language
+                                )}
+                            </p>
+
+                            {selectedTicket.status ===
+                                "Ongoing" &&
+                                selectedTicket
+                                    .assignee
+                                    ?.name && (
+                                    <p>
+                                        <strong>
+                                            {t(
+                                                "assignedIT"
+                                            )}
+                                            :
+                                        </strong>{" "}
+                                        {
+                                            selectedTicket
+                                                .assignee
+                                                .name
+                                        }
+                                    </p>
+                                )}
+
+                            <p>
+                                <strong>
+                                    {t(
+                                        "dateOpened"
+                                    )}
+                                    :
                                 </strong>{" "}
                                 {formatDateTime(
                                     selectedTicket.date_opened
@@ -823,7 +1445,10 @@ export default function EmployeeTicketsIndex({
 
                             <p>
                                 <strong>
-                                    Resolved At:
+                                    {t(
+                                        "resolvedAt"
+                                    )}
+                                    :
                                 </strong>{" "}
                                 {selectedTicket.resolved_at
                                     ? formatDateTime(
@@ -834,58 +1459,76 @@ export default function EmployeeTicketsIndex({
 
                             <div>
                                 <strong>
-                                    Problem Description:
+                                    {t(
+                                        "problemDescription"
+                                    )}
+                                    :
                                 </strong>
 
                                 <textarea
                                     readOnly
                                     className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base text-[#101E33]"
                                     value={
-                                        selectedTicketDetails.problemDescription
+                                        translatedSelectedProblem
                                     }
                                 />
                             </div>
 
                             <div>
                                 <strong>
-                                    Remarks:
+                                    {t(
+                                        "remarks"
+                                    )}
+                                    :
                                 </strong>
 
                                 <textarea
                                     readOnly
                                     className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base text-[#101E33]"
                                     value={
-                                        selectedTicketDetails.remarks
+                                        translatedSelectedRemarks
                                     }
                                 />
                             </div>
 
                             <div>
                                 <strong>
-                                    Progress Update:
+                                    {t(
+                                        "progressUpdate"
+                                    )}
+                                    :
                                 </strong>
 
                                 <textarea
                                     readOnly
                                     className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base text-[#101E33]"
                                     value={
-                                        selectedTicket.progress_update ||
-                                        "No progress update yet."
+                                        selectedTicket.progress_update
+                                            ? translatedSelectedProgress
+                                            : t(
+                                                  "noProgressUpdate"
+                                              )
                                     }
                                 />
                             </div>
 
                             <div>
                                 <strong>
-                                    Problem Solution:
+                                    {t(
+                                        "problemSolution"
+                                    )}
+                                    :
                                 </strong>
 
                                 <textarea
                                     readOnly
                                     className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base text-[#101E33]"
                                     value={
-                                        selectedTicket.problem_solution ||
-                                        "No solution provided yet."
+                                        selectedTicket.problem_solution
+                                            ? translatedSelectedSolution
+                                            : t(
+                                                  "noSolutionProvided"
+                                              )
                                     }
                                 />
                             </div>
@@ -899,7 +1542,9 @@ export default function EmployeeTicketsIndex({
                     <div
                         className="absolute inset-0 bg-black/60"
                         onClick={() =>
-                            setEditTicket(null)
+                            setEditTicket(
+                                null
+                            )
                         }
                     />
 
@@ -908,23 +1553,31 @@ export default function EmployeeTicketsIndex({
                             type="button"
                             className="absolute top-4 right-4 text-gray-500 hover:text-black"
                             onClick={() =>
-                                setEditTicket(null)
+                                setEditTicket(
+                                    null
+                                )
                             }
                         >
                             ✕
                         </button>
 
                         <h2 className="text-xl font-bold text-center mb-6 text-[#101E33]">
-                            Edit Ticket
+                            {t(
+                                "editTicket"
+                            )}
                         </h2>
 
                         <form
-                            onSubmit={updateTicket}
+                            onSubmit={
+                                updateTicket
+                            }
                             className="space-y-4 text-sm text-[#101E33]"
                         >
                             <div>
                                 <label className="block mb-1 font-semibold text-[#101E33]">
-                                    Employee Name
+                                    {t(
+                                        "employeeName"
+                                    )}
                                 </label>
 
                                 <input
@@ -938,10 +1591,14 @@ export default function EmployeeTicketsIndex({
                                             false
                                         )
                                     }
-                                    onChange={(e) =>
+                                    onChange={(
+                                        e
+                                    ) =>
                                         setEditData(
                                             "employee_name",
-                                            e.target.value
+                                            e
+                                                .target
+                                                .value
                                         )
                                     }
                                     required
@@ -950,7 +1607,9 @@ export default function EmployeeTicketsIndex({
 
                             <div>
                                 <label className="block mb-1 font-semibold text-[#101E33]">
-                                    Department
+                                    {t(
+                                        "department"
+                                    )}
                                 </label>
 
                                 <select
@@ -963,20 +1622,28 @@ export default function EmployeeTicketsIndex({
                                             false
                                         )
                                     }
-                                    onChange={(e) =>
+                                    onChange={(
+                                        e
+                                    ) =>
                                         setEditData(
                                             "department",
-                                            e.target.value
+                                            e
+                                                .target
+                                                .value
                                         )
                                     }
                                     required
                                 >
                                     <option value="">
-                                        Select Department
+                                        {t(
+                                            "selectDepartment"
+                                        )}
                                     </option>
 
                                     {departments.map(
-                                        (department) => (
+                                        (
+                                            department
+                                        ) => (
                                             <option
                                                 key={
                                                     department
@@ -996,7 +1663,9 @@ export default function EmployeeTicketsIndex({
 
                             <div>
                                 <label className="block mb-1 font-semibold text-[#101E33]">
-                                    Category
+                                    {t(
+                                        "category"
+                                    )}
                                 </label>
 
                                 <select
@@ -1009,11 +1678,16 @@ export default function EmployeeTicketsIndex({
                                             false
                                         )
                                     }
-                                    onChange={(e) => {
+                                    onChange={(
+                                        e
+                                    ) => {
                                         setEditData(
                                             "category",
-                                            e.target.value
+                                            e
+                                                .target
+                                                .value
                                         );
+
                                         setShowEditProblemSuggestions(
                                             false
                                         );
@@ -1021,11 +1695,15 @@ export default function EmployeeTicketsIndex({
                                     required
                                 >
                                     <option value="">
-                                        Select Category
+                                        {t(
+                                            "selectCategory"
+                                        )}
                                     </option>
 
                                     {categories.map(
-                                        (category) => (
+                                        (
+                                            category
+                                        ) => (
                                             <option
                                                 key={
                                                     category
@@ -1034,9 +1712,10 @@ export default function EmployeeTicketsIndex({
                                                     category
                                                 }
                                             >
-                                                {
-                                                    category
-                                                }
+                                                {translateCategory(
+                                                    category,
+                                                    language
+                                                )}
                                             </option>
                                         )
                                     )}
@@ -1045,26 +1724,29 @@ export default function EmployeeTicketsIndex({
 
                             <div>
                                 <label className="block mb-1 font-semibold text-[#101E33]">
-                                    Problem Description
+                                    {t(
+                                        "problemDescription"
+                                    )}
                                 </label>
 
                                 {showEditProblemSuggestions &&
                                     editData.category &&
-                                    TicketSuggestions
-                                        .employee[
-                                        editData.category
-                                    ]?.length > 0 && (
+                                    employeeSuggestions[
+                                        editData
+                                            .category
+                                    ]?.length >
+                                        0 && (
                                         <div className="mt-2 mb-3 space-y-2">
-                                            {TicketSuggestions.employee[
-                                                editData.category
+                                            {employeeSuggestions[
+                                                editData
+                                                    .category
                                             ].map(
                                                 (
-                                                    suggestion
+                                                    suggestion,
+                                                    index
                                                 ) => (
                                                     <button
-                                                        key={
-                                                            suggestion
-                                                        }
+                                                        key={`${editData.category}-${index}`}
                                                         type="button"
                                                         className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
                                                         onMouseDown={(
@@ -1077,6 +1759,7 @@ export default function EmployeeTicketsIndex({
                                                                 "problem_description",
                                                                 suggestion
                                                             );
+
                                                             setShowEditProblemSuggestions(
                                                                 false
                                                             );
@@ -1102,11 +1785,16 @@ export default function EmployeeTicketsIndex({
                                             true
                                         )
                                     }
-                                    onChange={(e) => {
+                                    onChange={(
+                                        e
+                                    ) => {
                                         setEditData(
                                             "problem_description",
-                                            e.target.value
+                                            e
+                                                .target
+                                                .value
                                         );
+
                                         setShowEditProblemSuggestions(
                                             false
                                         );
@@ -1119,11 +1807,15 @@ export default function EmployeeTicketsIndex({
                                 <button
                                     type="button"
                                     onClick={() =>
-                                        setEditTicket(null)
+                                        setEditTicket(
+                                            null
+                                        )
                                     }
                                     className="px-6 py-2 rounded bg-gray-400 hover:bg-gray-500 text-white font-semibold"
                                 >
-                                    Cancel
+                                    {t(
+                                        "cancel"
+                                    )}
                                 </button>
 
                                 <button
@@ -1133,7 +1825,9 @@ export default function EmployeeTicketsIndex({
                                     }
                                     className="px-6 py-2 rounded bg-green-500 hover:bg-green-600 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    Save Changes
+                                    {t(
+                                        "saveChanges"
+                                    )}
                                 </button>
                             </div>
                         </form>

@@ -1,31 +1,46 @@
 import { useEffect } from "react";
 
-export default function Show({ show, ticket, onClose }) {
+export default function Show({
+    show,
+    ticket,
+    onClose,
+}) {
     const formatDateTime = (date) => {
         if (!date) return "—";
 
-        const normalizedDate = String(date)
-            .replace(" ", "T")
-            .replace(/\.\d+Z?$/, "")
-            .replace(/Z$/, "");
+        const normalizedDate =
+            String(date)
+                .replace(" ", "T")
+                .replace(/\.\d+Z?$/, "")
+                .replace(/Z$/, "");
 
-        const parsedDate = new Date(normalizedDate);
+        const parsedDate =
+            new Date(normalizedDate);
 
-        if (Number.isNaN(parsedDate.getTime())) {
+        if (
+            Number.isNaN(
+                parsedDate.getTime()
+            )
+        ) {
             return "—";
         }
 
-        return parsedDate.toLocaleString("en-US", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-        });
+        return parsedDate.toLocaleString(
+            "en-US",
+            {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+            }
+        );
     };
 
-    const splitProblemDescription = (description) => {
+    const splitProblemDescription = (
+        description
+    ) => {
         if (!description) {
             return {
                 problemDescription: "",
@@ -34,45 +49,67 @@ export default function Show({ show, ticket, onClose }) {
             };
         }
 
-        const marker = "\n\nRemarks:";
-        const markerIndex = description.indexOf(marker);
+        const marker =
+            "\n\nRemarks:";
+
+        const markerIndex =
+            description.indexOf(marker);
 
         if (markerIndex === -1) {
             return {
-                problemDescription: description,
+                problemDescription:
+                    description,
                 remarks: "",
                 hasRemarks: false,
             };
         }
 
-        const remarks = description
-            .substring(markerIndex + marker.length)
-            .trim();
+        const remarks =
+            description
+                .substring(
+                    markerIndex +
+                        marker.length
+                )
+                .trim();
 
         return {
-            problemDescription: description
-                .substring(0, markerIndex)
-                .trim(),
+            problemDescription:
+                description
+                    .substring(
+                        0,
+                        markerIndex
+                    )
+                    .trim(),
             remarks,
-            hasRemarks: remarks !== "",
+            hasRemarks:
+                remarks !== "",
         };
     };
 
-    const ticketDetails = splitProblemDescription(
-        ticket?.problem_description
-    );
+    const ticketDetails =
+        splitProblemDescription(
+            ticket?.problem_description
+        );
 
     useEffect(() => {
         const handleEsc = (e) => {
-            if (e.key === "Escape") {
+            if (
+                e.key === "Escape"
+            ) {
                 onClose();
             }
         };
 
-        document.addEventListener("keydown", handleEsc);
+        document.addEventListener(
+            "keydown",
+            handleEsc
+        );
 
         return () => {
-            document.removeEventListener("keydown", handleEsc);
+            document.removeEventListener(
+                "keydown",
+                handleEsc
+            );
         };
     }, [onClose]);
 
@@ -87,7 +124,7 @@ export default function Show({ show, ticket, onClose }) {
                 onClick={onClose}
             />
 
-            <div className="relative bg-white rounded-xl w-full max-w-lg p-6 shadow-xl z-10">
+            <div className="relative bg-white rounded-xl w-full max-w-lg p-6 shadow-xl z-10 max-h-[90vh] overflow-y-auto">
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 text-gray-500 hover:text-black"
@@ -101,73 +138,131 @@ export default function Show({ show, ticket, onClose }) {
 
                 <div className="space-y-3 text-base text-[#101E33]">
                     <p>
-                        <strong>Ticket No:</strong>{" "}
-                        {ticket.ticket_no || "—"}
+                        <strong>
+                            Ticket No:
+                        </strong>{" "}
+                        {ticket.ticket_no ||
+                            "—"}
                     </p>
 
                     <p>
-                        <strong>Employee Name:</strong>{" "}
-                        {ticket.employee_name}
+                        <strong>
+                            Employee Name:
+                        </strong>{" "}
+                        {
+                            ticket.employee_name
+                        }
                     </p>
 
                     <p>
-                        <strong>Department:</strong>{" "}
+                        <strong>
+                            Department:
+                        </strong>{" "}
                         {ticket.department}
                     </p>
 
                     <p>
-                        <strong>Category:</strong>{" "}
+                        <strong>
+                            Category:
+                        </strong>{" "}
                         {ticket.category}
                     </p>
 
                     <p>
-                        <strong>Status:</strong> {ticket.status}
+                        <strong>
+                            Status:
+                        </strong>{" "}
+                        {ticket.status}
+                    </p>
+
+                    {/* {ticket.assignee
+                        ?.name && (
+                        <p>
+                            <strong>
+                                Assigned IT:
+                            </strong>{" "}
+                            {
+                                ticket
+                                    .assignee
+                                    .name
+                            }
+                        </p>
+                    )} */}
+
+                    <p>
+                        <strong>
+                            Date Opened:
+                        </strong>{" "}
+                        {formatDateTime(
+                            ticket.date_opened
+                        )}
                     </p>
 
                     <p>
-                        <strong>Date Opened:</strong>{" "}
-                        {formatDateTime(ticket.date_opened)}
-                    </p>
-
-                    <p>
-                        <strong>Resolved At:</strong>{" "}
+                        <strong>
+                            Resolved At:
+                        </strong>{" "}
                         {ticket.resolved_at
-                            ? formatDateTime(ticket.resolved_at)
+                            ? formatDateTime(
+                                  ticket.resolved_at
+                              )
                             : "—"}
                     </p>
 
                     <p>
-                        <strong>Created By:</strong>{" "}
-                        {ticket.creator?.name || "Employee"}
+                        <strong>
+                            Created By:
+                        </strong>{" "}
+                        {ticket.creator
+                            ?.name ||
+                            "Employee"}
                     </p>
 
                     <p>
-                        <strong>Resolved By:</strong>{" "}
-                        {ticket.resolver?.name || "—"}
+                        <strong>
+                            Resolved By:
+                        </strong>{" "}
+                        {ticket.resolver
+                            ?.name || "—"}
                     </p>
 
                     <div>
-                        <strong>Problem Description:</strong>
+                        <strong>
+                            Problem
+                            Description:
+                        </strong>
+
                         <textarea
                             readOnly
                             className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base"
-                            value={ticketDetails.problemDescription}
+                            value={
+                                ticketDetails.problemDescription
+                            }
                         />
                     </div>
 
                     {ticketDetails.hasRemarks && (
                         <div>
-                            <strong>Remarks:</strong>
+                            <strong>
+                                Remarks:
+                            </strong>
+
                             <textarea
                                 readOnly
                                 className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base"
-                                value={ticketDetails.remarks}
+                                value={
+                                    ticketDetails.remarks
+                                }
                             />
                         </div>
                     )}
 
                     <div>
-                        <strong>Progress Update:</strong>
+                        <strong>
+                            Progress
+                            Update:
+                        </strong>
+
                         <textarea
                             readOnly
                             className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base"
@@ -175,12 +270,19 @@ export default function Show({ show, ticket, onClose }) {
                                 ticket.progress_update ||
                                 "No progress update yet."
                             }
-                            style={{ whiteSpace: "pre-wrap" }}
+                            style={{
+                                whiteSpace:
+                                    "pre-wrap",
+                            }}
                         />
                     </div>
 
                     <div>
-                        <strong>Problem Solution:</strong>
+                        <strong>
+                            Problem
+                            Solution:
+                        </strong>
+
                         <textarea
                             readOnly
                             className="w-full mt-1 rounded border px-3 py-2 bg-gray-50 text-base"
@@ -188,7 +290,10 @@ export default function Show({ show, ticket, onClose }) {
                                 ticket.problem_solution ||
                                 "No solution provided yet."
                             }
-                            style={{ whiteSpace: "pre-wrap" }}
+                            style={{
+                                whiteSpace:
+                                    "pre-wrap",
+                            }}
                         />
                     </div>
                 </div>

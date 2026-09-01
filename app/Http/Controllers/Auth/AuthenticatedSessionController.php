@@ -29,7 +29,6 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        // ✅ REQUIRED VALIDATION (SERVER SIDE)
         $request->validate([
             'name' => ['required', 'string'],
             'password' => ['required', 'string'],
@@ -40,7 +39,6 @@ class AuthenticatedSessionController extends Controller
 
         $credentials = $request->only('name', 'password');
 
-        // ✅ WRONG USERNAME/PASSWORD MESSAGE
         if (!Auth::attempt($credentials, $request->boolean('remember'))) {
             throw ValidationException::withMessages([
                 'name' => 'Invalid username or password.',
@@ -48,6 +46,22 @@ class AuthenticatedSessionController extends Controller
         }
 
         $request->session()->regenerate();
+
+        $user = $request->user();
+
+        if (
+            $user &&
+            $user->role === 'superadmin' &&
+            in_array(strtolower($user->name), [
+                'r.pasion',
+                'j.tubaying',
+                'l.larracas',
+            ])
+        ) {
+            $user->update([
+                'last_seen_at' => now(),
+            ]);
+        }
 
         return redirect()->intended(route('dashboard'));
     }
@@ -57,6 +71,22 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $user = $request->user();
+
+        if (
+            $user &&
+            $user->role === 'superadmin' &&
+            in_array(strtolower($user->name), [
+                'r.pasion',
+                'j.tubaying',
+                'l.larracas',
+            ])
+        ) {
+            $user->update([
+                'last_seen_at' => null,
+            ]);
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

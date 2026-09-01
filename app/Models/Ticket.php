@@ -18,6 +18,7 @@ class Ticket extends Model
         'problem_solution',
         'progress_update',
         'status',
+        'assigned_to',
         'date_opened',
         'created_by',
         'resolved_by',
@@ -38,6 +39,14 @@ class Ticket extends Model
         return $this->belongsTo(
             User::class,
             'resolved_by'
+        );
+    }
+
+    public function assignee()
+    {
+        return $this->belongsTo(
+            User::class,
+            'assigned_to'
         );
     }
 

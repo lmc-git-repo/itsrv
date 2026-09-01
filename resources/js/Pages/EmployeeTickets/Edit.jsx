@@ -1,6 +1,11 @@
 import { Head, useForm } from "@inertiajs/react";
 import TicketSuggestions from "@/Constants/TicketSuggestions";
 import { useState } from "react";
+import {
+    useEmployeeLanguage,
+    translateUI,
+    translateCategory,
+} from "@/Utils/EmployeeLanguage";
 
 export default function EmployeeTicketEdit({
     ticket,
@@ -8,6 +13,14 @@ export default function EmployeeTicketEdit({
 }) {
     const [showProblemSuggestions, setShowProblemSuggestions] =
         useState(false);
+
+    const {
+        language,
+        setLanguage,
+    } = useEmployeeLanguage();
+
+    const t = (key) =>
+        translateUI(language, key);
 
     const { data, setData, put, processing } = useForm({
         employee_name: ticket.employee_name || "",
@@ -36,6 +49,11 @@ export default function EmployeeTicketEdit({
         TicketSuggestions.employee
     );
 
+    const suggestions =
+        language === "ja"
+            ? TicketSuggestions.employeeJapanese
+            : TicketSuggestions.employee;
+
     const submit = (e) => {
         e.preventDefault();
 
@@ -53,8 +71,44 @@ export default function EmployeeTicketEdit({
                     <div className="absolute inset-0 bg-black/60" />
 
                     <section className="relative bg-white rounded-xl w-full max-w-lg p-6 shadow-xl z-10 text-[#101E33] max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-end mb-4">
+                            <div className="flex items-center gap-3 text-xs font-bold">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setLanguage("ja")
+                                    }
+                                    className={
+                                        language === "ja"
+                                            ? "text-[#101E33] underline"
+                                            : "text-gray-400"
+                                    }
+                                >
+                                    JAPANESE
+                                </button>
+
+                                <span className="text-gray-400">
+                                    |
+                                </span>
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setLanguage("en")
+                                    }
+                                    className={
+                                        language === "en"
+                                            ? "text-[#101E33] underline"
+                                            : "text-gray-400"
+                                    }
+                                >
+                                    ENGLISH
+                                </button>
+                            </div>
+                        </div>
+
                         <h1 className="text-xl font-bold text-center mb-6 text-[#101E33]">
-                            Edit Ticket
+                            {t("editTicket")}
                         </h1>
 
                         <form
@@ -63,7 +117,7 @@ export default function EmployeeTicketEdit({
                         >
                             <div>
                                 <label className="block mb-1 font-semibold text-[#101E33]">
-                                    Employee Name
+                                    {t("employeeName")}
                                 </label>
 
                                 <input
@@ -87,7 +141,7 @@ export default function EmployeeTicketEdit({
 
                             <div>
                                 <label className="block mb-1 font-semibold text-[#101E33]">
-                                    Department
+                                    {t("department")}
                                 </label>
 
                                 <select
@@ -107,7 +161,7 @@ export default function EmployeeTicketEdit({
                                     required
                                 >
                                     <option value="">
-                                        Select Department
+                                        {t("selectDepartment")}
                                     </option>
 
                                     {departments.map(
@@ -125,7 +179,7 @@ export default function EmployeeTicketEdit({
 
                             <div>
                                 <label className="block mb-1 font-semibold text-[#101E33]">
-                                    Category
+                                    {t("category")}
                                 </label>
 
                                 <select
@@ -141,6 +195,7 @@ export default function EmployeeTicketEdit({
                                             "category",
                                             e.target.value
                                         );
+
                                         setShowProblemSuggestions(
                                             false
                                         );
@@ -148,7 +203,7 @@ export default function EmployeeTicketEdit({
                                     required
                                 >
                                     <option value="">
-                                        Select Category
+                                        {t("selectCategory")}
                                     </option>
 
                                     {categories.map(
@@ -157,7 +212,10 @@ export default function EmployeeTicketEdit({
                                                 key={category}
                                                 value={category}
                                             >
-                                                {category}
+                                                {translateCategory(
+                                                    category,
+                                                    language
+                                                )}
                                             </option>
                                         )
                                     )}
@@ -166,7 +224,7 @@ export default function EmployeeTicketEdit({
 
                             <div>
                                 <label className="block mb-1 font-semibold text-[#101E33]">
-                                    Problem Description
+                                    {t("problemDescription")}
                                 </label>
 
                                 <textarea
@@ -185,6 +243,7 @@ export default function EmployeeTicketEdit({
                                             "problem_description",
                                             e.target.value
                                         );
+
                                         setShowProblemSuggestions(
                                             false
                                         );
@@ -194,18 +253,19 @@ export default function EmployeeTicketEdit({
 
                                 {showProblemSuggestions &&
                                     data.category &&
-                                    TicketSuggestions.employee[
+                                    suggestions[
                                         data.category
                                     ]?.length > 0 && (
                                         <div className="mt-2 space-y-2">
-                                            {TicketSuggestions.employee[
+                                            {suggestions[
                                                 data.category
                                             ].map(
-                                                (suggestion) => (
+                                                (
+                                                    suggestion,
+                                                    index
+                                                ) => (
                                                     <button
-                                                        key={
-                                                            suggestion
-                                                        }
+                                                        key={`${data.category}-${index}`}
                                                         type="button"
                                                         className="block w-full text-left rounded border border-gray-300 px-3 py-2 text-sm bg-white hover:bg-gray-100 !text-black"
                                                         onMouseDown={(
@@ -218,14 +278,13 @@ export default function EmployeeTicketEdit({
                                                                 "problem_description",
                                                                 suggestion
                                                             );
+
                                                             setShowProblemSuggestions(
                                                                 false
                                                             );
                                                         }}
                                                     >
-                                                        {
-                                                            suggestion
-                                                        }
+                                                        {suggestion}
                                                     </button>
                                                 )
                                             )}
@@ -239,7 +298,7 @@ export default function EmployeeTicketEdit({
                                     disabled={processing}
                                     className="px-6 py-2 rounded bg-green-500 hover:bg-green-600 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    Save Changes
+                                    {t("saveChanges")}
                                 </button>
                             </div>
                         </form>

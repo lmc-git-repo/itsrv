@@ -1,10 +1,82 @@
 import { useEffect } from 'react';
 import Dropdown from '@/Components/Dropdown';
 import { Link, usePage } from '@inertiajs/react';
+import axios from 'axios';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
     const isSuperAdmin = user?.role === "superadmin";
+
+    useEffect(() => {
+        if (!isSuperAdmin) return;
+
+        const itAccounts = [
+            "r.pasion",
+            "j.tubaying",
+            "l.larracas",
+        ];
+
+        if (!itAccounts.includes(user?.name?.toLowerCase())) {
+            return;
+        }
+
+        const sendHeartbeat = async () => {
+            try {
+                await axios.post(
+                    route("it.heartbeat"),
+                    {},
+                    {
+                        headers: {
+                            Accept: "application/json",
+                        },
+                    }
+                );
+            } catch (error) {
+                console.error(
+                    "IT heartbeat error:",
+                    error.response?.status,
+                    error.response?.data || error
+                );
+            }
+        };
+
+        sendHeartbeat();
+
+        const heartbeatInterval = setInterval(
+            sendHeartbeat,
+            10000
+        );
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === "visible") {
+                sendHeartbeat();
+            }
+        };
+
+        window.addEventListener(
+            "focus",
+            sendHeartbeat
+        );
+
+        document.addEventListener(
+            "visibilitychange",
+            handleVisibilityChange
+        );
+
+        return () => {
+            clearInterval(heartbeatInterval);
+
+            window.removeEventListener(
+                "focus",
+                sendHeartbeat
+            );
+
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange
+            );
+        };
+    }, [isSuperAdmin, user?.name]);
 
     useEffect(() => {
         if (!isSuperAdmin) return;

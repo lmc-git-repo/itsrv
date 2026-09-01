@@ -15,7 +15,11 @@ class TicketController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Ticket::with(['creator', 'resolver'])->latest();
+        $query = Ticket::with([
+            'creator',
+            'resolver',
+            'assignee',
+        ])->latest();
 
         if ($request->search) {
             $query->where(function ($q) use ($request) {
@@ -77,9 +81,38 @@ class TicketController extends Controller
         return response()->json($ticket);
     }
 
+    public function updateITHeartbeat(Request $request)
+    {
+        $user = $request->user();
+
+        if (
+            !$user ||
+            $user->role !== 'superadmin' ||
+            !in_array(strtolower($user->name), [
+                'r.pasion',
+                'j.tubaying',
+                'l.larracas',
+            ])
+        ) {
+            return response()->json([
+                'success' => false,
+            ], 403);
+        }
+
+        $user->update([
+            'last_seen_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'last_seen_at' => $user->last_seen_at,
+        ]);
+    }
+
     public function employeeIndex(Request $request)
     {
-        $ticketsQuery = Ticket::whereNull('created_by');
+        $ticketsQuery = Ticket::with('assignee')
+            ->whereNull('created_by');
 
         if ($request->tracking_code) {
             $searchKeyword = strtoupper(
@@ -109,6 +142,57 @@ class TicketController extends Controller
             ->latest()
             ->get();
 
+        $itUsers = User::whereIn('name', [
+            'r.pasion',
+            'j.tubaying',
+            'l.larracas',
+        ])
+            ->select(
+                'id',
+                'name',
+                'last_seen_at'
+            )
+            ->get()
+            ->keyBy(function ($user) {
+                return strtolower($user->name);
+            });
+
+        $itStaffOrder = [
+            [
+                'name' => 'r.pasion',
+                'display_name' => 'R.Pasion',
+            ],
+            [
+                'name' => 'j.tubaying',
+                'display_name' => 'J.Tubaying',
+            ],
+            [
+                'name' => 'l.larracas',
+                'display_name' => 'L.Larracas',
+            ],
+        ];
+
+        $itStaffStatuses = collect($itStaffOrder)
+            ->map(function ($staff) use ($itUsers) {
+                $user = $itUsers->get(
+                    strtolower($staff['name'])
+                );
+
+                $isOnDuty =
+                    $user &&
+                    $user->last_seen_at &&
+                    Carbon::parse($user->last_seen_at)
+                        ->greaterThanOrEqualTo(
+                            now()->subSeconds(30)
+                        );
+
+                return [
+                    'name' => $staff['display_name'],
+                    'on_duty' => $isOnDuty,
+                ];
+            })
+            ->values();
+
         return Inertia::render('EmployeeTickets/Index', [
             'tickets' => $tickets,
             'tracking_code' => $request->tracking_code,
@@ -121,6 +205,7 @@ class TicketController extends Controller
                 ->select('id', 'name', 'department')
                 ->orderBy('name')
                 ->get(),
+            'itStaffStatuses' => $itStaffStatuses,
         ]);
     }
 
@@ -138,6 +223,16 @@ class TicketController extends Controller
             'problem_description' => 'required|string',
         ]);
 
+        $employee = Employee::where(
+            'name',
+            $request->employee_name
+        )
+            ->where(
+                'status',
+                'Employed'
+            )
+            ->firstOrFail();
+
         $employeeCategory = $request->category;
         $itCategory =
             $this->mapEmployeeCategoryToITCategory(
@@ -146,7 +241,7 @@ class TicketController extends Controller
 
         $ticket = Ticket::create([
             'employee_name' => $request->employee_name,
-            'department' => $request->department,
+            'department' => $employee->department,
             'employee_category' => $employeeCategory,
             'category' => $itCategory,
             'problem_description' =>
@@ -230,6 +325,16 @@ class TicketController extends Controller
             'tracking_code' => 'required|string',
         ]);
 
+        $employee = Employee::where(
+            'name',
+            $request->employee_name
+        )
+            ->where(
+                'status',
+                'Employed'
+            )
+            ->firstOrFail();
+
         $employeeCategory = $request->category;
 
         $itCategory =
@@ -254,7 +359,7 @@ class TicketController extends Controller
             'employee_name' =>
                 $request->employee_name,
             'department' =>
-                $request->department,
+                $employee->department,
             'employee_category' =>
                 $employeeCategory,
             'category' =>
@@ -274,7 +379,9 @@ class TicketController extends Controller
         return Inertia::render(
             'EmployeeTickets/Show',
             [
-                'ticket' => $ticket,
+                'ticket' => $ticket->load(
+                    'assignee'
+                ),
             ]
         );
     }
@@ -350,6 +457,7 @@ class TicketController extends Controller
             'ticket' => $ticket->load([
                 'creator',
                 'resolver',
+                'assignee',
             ]),
         ]);
     }
@@ -359,7 +467,9 @@ class TicketController extends Controller
         return Inertia::render(
             'Tickets/Edit',
             [
-                'ticket' => $ticket,
+                'ticket' => $ticket->load(
+                    'assignee'
+                ),
             ]
         );
     }
@@ -399,6 +509,20 @@ class TicketController extends Controller
                 'date',
             ],
         ]);
+
+        $assignedTo =
+            $ticket->assigned_to;
+
+        if ($request->status === 'Open') {
+            $assignedTo = null;
+        }
+
+        if (
+            $request->status === 'Ongoing' &&
+            !$assignedTo
+        ) {
+            $assignedTo = Auth::id();
+        }
 
         $newSolution =
             $request->problem_solution;
@@ -516,6 +640,8 @@ class TicketController extends Controller
                 $request->problem_description,
             'status' =>
                 $request->status,
+            'assigned_to' =>
+                $assignedTo,
             'date_opened' =>
                 $dateOpened,
             'problem_solution' =>
