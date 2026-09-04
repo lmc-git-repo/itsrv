@@ -10,6 +10,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class TicketController extends Controller
 {
@@ -178,13 +179,13 @@ class TicketController extends Controller
                     strtolower($staff['name'])
                 );
 
-                $isOnDuty =
-                    $user &&
-                    $user->last_seen_at &&
-                    Carbon::parse($user->last_seen_at)
-                        ->greaterThanOrEqualTo(
-                            now()->subSeconds(30)
-                        );
+                $isOnDuty = false;
+
+                if ($user) {
+                    $isOnDuty = DB::table('sessions')
+                        ->where('user_id', $user->id)
+                        ->exists();
+                }
 
                 return [
                     'name' => $staff['display_name'],
