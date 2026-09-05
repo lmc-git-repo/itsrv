@@ -10,7 +10,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class TicketController extends Controller
 {
@@ -110,6 +109,33 @@ class TicketController extends Controller
         ]);
     }
 
+    public function updateITOffline(Request $request)
+    {
+        $user = $request->user();
+
+        if (
+            !$user ||
+            $user->role !== 'superadmin' ||
+            !in_array(strtolower($user->name), [
+                'r.pasion',
+                'j.tubaying',
+                'l.larracas',
+            ])
+        ) {
+            return response()->json([
+                'success' => false,
+            ], 403);
+        }
+
+        $user->update([
+            'last_seen_at' => null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+        ]);
+    }
+
     public function employeeIndex(Request $request)
     {
         $ticketsQuery = Ticket::with('assignee')
@@ -179,13 +205,13 @@ class TicketController extends Controller
                     strtolower($staff['name'])
                 );
 
-                $isOnDuty = false;
-
-                if ($user) {
-                    $isOnDuty = DB::table('sessions')
-                        ->where('user_id', $user->id)
-                        ->exists();
-                }
+                $isOnDuty =
+                    $user &&
+                    $user->last_seen_at &&
+                    Carbon::parse($user->last_seen_at)
+                        ->greaterThanOrEqualTo(
+                            now()->subSeconds(35)
+                        );
 
                 return [
                     'name' => $staff['display_name'],

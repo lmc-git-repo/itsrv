@@ -20,8 +20,91 @@ export default function AuthenticatedLayout({ header, children }) {
             return;
         }
 
+        const heartbeatIntervalMs = 10000;
+
+        const presenceStorageKey =
+            `its_lmc_it_tabs_${user.id}`;
+
+        const tabIdStorageKey =
+            `its_lmc_it_tab_id_${user.id}`;
+
+        let tabId =
+            sessionStorage.getItem(
+                tabIdStorageKey
+            );
+
+        if (!tabId) {
+            tabId =
+                `${Date.now()}_${Math.random()
+                    .toString(36)
+                    .substring(2)}`;
+
+            sessionStorage.setItem(
+                tabIdStorageKey,
+                tabId
+            );
+        }
+
+        const getOpenTabs = () => {
+            try {
+                const stored =
+                    localStorage.getItem(
+                        presenceStorageKey
+                    );
+
+                if (!stored) {
+                    return {};
+                }
+
+                const parsed =
+                    JSON.parse(stored);
+
+                return parsed &&
+                    typeof parsed === "object"
+                    ? parsed
+                    : {};
+            } catch (error) {
+                return {};
+            }
+        };
+
+        const saveOpenTabs = (tabs) => {
+            localStorage.setItem(
+                presenceStorageKey,
+                JSON.stringify(tabs)
+            );
+        };
+
+        const registerCurrentTab = () => {
+            const tabs = getOpenTabs();
+
+            tabs[tabId] = Date.now();
+
+            saveOpenTabs(tabs);
+        };
+
+        const updateCurrentTab = () => {
+            const tabs = getOpenTabs();
+
+            tabs[tabId] = Date.now();
+
+            saveOpenTabs(tabs);
+        };
+
+        const removeCurrentTab = () => {
+            const tabs = getOpenTabs();
+
+            delete tabs[tabId];
+
+            saveOpenTabs(tabs);
+
+            return Object.keys(tabs).length;
+        };
+
         const sendHeartbeat = async () => {
             try {
+                updateCurrentTab();
+
                 await axios.post(
                     route("it.heartbeat"),
                     {},
@@ -40,22 +123,72 @@ export default function AuthenticatedLayout({ header, children }) {
             }
         };
 
-        sendHeartbeat();
+        const sendOffline = () => {
+            const csrfToken =
+                document
+                    .querySelector(
+                        'meta[name="csrf-token"]'
+                    )
+                    ?.getAttribute(
+                        "content"
+                    ) || "";
 
-        const heartbeatInterval = setInterval(
-            sendHeartbeat,
-            10000
-        );
+            const formData =
+                new FormData();
 
-        const handleVisibilityChange = () => {
-            if (document.visibilityState === "visible") {
-                sendHeartbeat();
+            formData.append(
+                "_token",
+                csrfToken
+            );
+
+            navigator.sendBeacon(
+                route("it.offline"),
+                formData
+            );
+        };
+
+        const handlePageHide = () => {
+            const remainingTabs =
+                removeCurrentTab();
+
+            if (remainingTabs === 0) {
+                sendOffline();
             }
         };
 
+        const handleVisibilityChange = () => {
+            /*
+             * IMPORTANT:
+             * Hidden/minimized DOES NOT mean offline.
+             *
+             * We intentionally continue sending
+             * heartbeat while the tab exists.
+             */
+            sendHeartbeat();
+        };
+
+        const handleFocus = () => {
+            sendHeartbeat();
+        };
+
+        registerCurrentTab();
+
+        sendHeartbeat();
+
+        const heartbeatInterval =
+            setInterval(
+                sendHeartbeat,
+                heartbeatIntervalMs
+            );
+
         window.addEventListener(
             "focus",
-            sendHeartbeat
+            handleFocus
+        );
+
+        window.addEventListener(
+            "pagehide",
+            handlePageHide
         );
 
         document.addEventListener(
@@ -64,11 +197,18 @@ export default function AuthenticatedLayout({ header, children }) {
         );
 
         return () => {
-            clearInterval(heartbeatInterval);
+            clearInterval(
+                heartbeatInterval
+            );
 
             window.removeEventListener(
                 "focus",
-                sendHeartbeat
+                handleFocus
+            );
+
+            window.removeEventListener(
+                "pagehide",
+                handlePageHide
             );
 
             document.removeEventListener(
@@ -76,7 +216,11 @@ export default function AuthenticatedLayout({ header, children }) {
                 handleVisibilityChange
             );
         };
-    }, [isSuperAdmin, user?.name]);
+    }, [
+        isSuperAdmin,
+        user?.id,
+        user?.name,
+    ]);
 
     useEffect(() => {
         if (!isSuperAdmin) return;

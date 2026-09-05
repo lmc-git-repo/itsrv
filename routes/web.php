@@ -65,6 +65,9 @@ Route::middleware(['auth','role:superadmin'])->group(function () {
     Route::post('/it/heartbeat', [TicketController::class, 'updateITHeartbeat'])
         ->name('it.heartbeat');
 
+    Route::post('/it/offline', [TicketController::class, 'updateITOffline'])
+        ->name('it.offline');
+
     Route::get('/tickets/latest/employee', [TicketController::class, 'latestEmployeeTicket'])
         ->name('tickets.latest.employee');
 
