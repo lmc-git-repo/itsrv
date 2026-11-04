@@ -1,3 +1,4 @@
+
 <?php
 
 use App\Http\Controllers\ProfileController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\TransferSlipController;
 use App\Http\Controllers\CPTransferSlipController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ITToolController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -216,9 +218,21 @@ Route::middleware(['auth','role:superadmin'])->group(function () {
 | IT Tools
 |--------------------------------------------------------------------------
 */
-Route::get('/it-tools', function () {
-    return Inertia::render('ITTools/Index');
-    })->name('ittools.index');
+Route::get('/it-tools', [ITToolController::class, 'index'])
+    ->name('ittools.index');
+
+Route::post('/it-tools', [ITToolController::class, 'store'])
+    ->name('ittools.store');
+
+Route::get('/it-tools/{ittool}', [ITToolController::class, 'show'])
+    ->name('ittools.show');
+
+Route::put('/it-tools/{ittool}', [ITToolController::class, 'update'])
+    ->name('ittools.update');
+
+Route::delete('/it-tools/{ittool}', [ITToolController::class, 'destroy'])
+    ->name('ittools.destroy');
+
 });
 
 require __DIR__.'/auth.php';
