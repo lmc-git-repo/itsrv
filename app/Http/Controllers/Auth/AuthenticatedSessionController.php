@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -61,9 +64,113 @@ class AuthenticatedSessionController extends Controller
             $user->update([
                 'last_seen_at' => now(),
             ]);
+
+            // Create one shared Daily IT Checksheet ticket
+            // only when an authorized IT personnel logs in.
+            $today = Carbon::now('Asia/Manila');
+
+            $dailyTrackingCode = 'DAILY-IT-' . $today->format('Ymd');
+
+            DB::transaction(function () use ($today, $dailyTrackingCode, $user) {
+                // tracking_code is unique in the existing tickets table.
+                // This prevents duplicate daily tickets from simultaneous logins.
+                $inserted = DB::table('tickets')->insertOrIgnore([
+                    'tracking_code' => $dailyTrackingCode,
+                    'employee_name' => 'IT Department',
+                    'department' => 'IT',
+                    'category' => 'IT Operations & Maintenance',
+                    'problem_description' => 'Perform the Daily IT Checksheet and verify all required daily IT operational checks.',
+                    'date_opened' => $today->toDateString(),
+                    'status' => 'Open',
+                    'created_by' => $user->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                if ($inserted === 1) {
+                    $dailyTicket = DB::table('tickets')
+                        ->where('tracking_code', $dailyTrackingCode)
+                        ->first();
+
+                    if ($dailyTicket) {
+                        DB::table('tickets')
+                            ->where('id', $dailyTicket->id)
+                            ->update([
+                                'ticket_no' => 'TCK-' . str_pad(
+                                    $dailyTicket->id,
+                                    4,
+                                    '0',
+                                    STR_PAD_LEFT
+                                ),
+                            ]);
+                    }
+                }
+            });
+
+            // A new token is generated only after successful IT login.
+            // It allows one reminder per login, not per page refresh.
+            $request->session()->put(
+                'daily_it_login_token',
+                (string) Str::uuid()
+            );
         }
 
         return redirect()->intended(route('dashboard'));
+    }
+
+    /**
+     * Return today's shared Daily IT Checksheet ticket
+     * for the authenticated IT personnel's notification.
+     */
+    public function dailyChecksheetNotification(Request $request)
+    {
+        $user = $request->user();
+
+        if (
+            !$user ||
+            $user->role !== 'superadmin' ||
+            !in_array(strtolower($user->name), [
+                'r.pasion',
+                'j.tubaying',
+                'l.larracas',
+            ])
+        ) {
+            return response()->json([
+                'success' => false,
+            ], 403);
+        }
+
+        $loginToken = $request->session()->get(
+            'daily_it_login_token'
+        );
+
+        if (!$loginToken) {
+            return response()->json([
+                'ticket' => null,
+                'login_token' => null,
+            ]);
+        }
+
+        $today = Carbon::now('Asia/Manila');
+
+        $dailyTrackingCode =
+            'DAILY-IT-' . $today->format('Ymd');
+
+        $ticket = DB::table('tickets')
+            ->where('tracking_code', $dailyTrackingCode)
+            ->select(
+                'id',
+                'ticket_no',
+                'employee_name',
+                'department',
+                'status'
+            )
+            ->first();
+
+        return response()->json([
+            'ticket' => $ticket,
+            'login_token' => $loginToken,
+        ]);
     }
 
     /**

@@ -66,7 +66,7 @@ class DashboardController extends Controller
             ? round(($totals['resolved'] / $totalTickets) * 100, 1)
             : 0;
 
-        // Resolved ticket performance is based on resolution date.
+        // Resolved ticket performance
         $resolvedInPeriod = DB::table('tickets')
             ->where('status', 'Resolved')
             ->whereNotNull('resolved_at')
@@ -98,33 +98,24 @@ class DashboardController extends Controller
             ? round(array_sum($resolutionDays) / count($resolutionDays), 1)
             : null;
 
-        // Category statistics.
-        $categories = [
-            'Application & System Support',
-            'Hardware Support & Device Setup',
-            'Account & Access Management',
-            'File, Data & Document Management',
-            'Network & Connectivity Support',
-            'IT Operations & Maintenance',
-            'Asset & Equipment Handling',
-            'Security & Permissions',
-            'Others',
-        ];
+        // Category statistics
+        $categoryStats = (clone $periodTickets)
+            ->whereNotNull('category')
+            ->where('category', '<>', '')
+            ->select(
+                'category as name',
+                DB::raw('COUNT(*) as total')
+            )
+            ->groupBy('category')
+            ->orderByDesc('total')
+            ->get()
+            ->map(fn ($category) => [
+                'name' => $category->name,
+                'total' => (int) $category->total,
+            ])
+            ->toArray();
 
-        $categoryStats = [];
-
-        foreach ($categories as $cat) {
-            $categoryStats[] = [
-                'name' => $cat,
-                'total' => (clone $periodTickets)
-                    ->where('category', $cat)
-                    ->count(),
-            ];
-        }
-
-        usort($categoryStats, fn ($a, $b) => $b['total'] <=> $a['total']);
-
-        // Ticket volume trend.
+        // Ticket volume trend
         $trend = [];
 
         if ($period === 'yearly') {
@@ -159,7 +150,7 @@ class DashboardController extends Controller
             }
         }
 
-        // Resolved tickets per IT personnel.
+        // Resolved tickets per IT personnel
         $personnelPerformance = (clone $resolvedInPeriod)
             ->join('users', 'tickets.resolved_by', '=', 'users.id')
             ->select(
@@ -177,7 +168,6 @@ class DashboardController extends Controller
             ])
             ->toArray();
 
-        // Tickets for the existing status/category detail modals.
         $tickets = (clone $periodTickets)
             ->select(
                 'id',
@@ -194,7 +184,7 @@ class DashboardController extends Controller
             ->map(fn ($t) => (array) $t)
             ->toArray();
 
-        // Existing Weekly IT Tasks functionality is retained.
+        // Weekly IT Tasks
         $weeklyTasks = DB::table('tickets')
             ->leftJoin('users as resolvers', 'tickets.resolved_by', '=', 'resolvers.id')
             ->select(

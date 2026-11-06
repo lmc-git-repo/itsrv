@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import Dropdown from '@/Components/Dropdown';
 import { Link, usePage } from '@inertiajs/react';
@@ -278,6 +279,128 @@ export default function AuthenticatedLayout({ header, children }) {
 
         return () => clearInterval(interval);
     }, [isSuperAdmin]);
+
+    // Daily IT Checksheet notification:
+    // One notification per successful IT personnel login.
+    useEffect(() => {
+        if (!isSuperAdmin) return;
+
+        const itAccounts = [
+            "r.pasion",
+            "j.tubaying",
+            "l.larracas",
+        ];
+
+        if (!itAccounts.includes(user?.name?.toLowerCase())) {
+            return;
+        }
+
+        if (!("Notification" in window)) return;
+
+        let cancelled = false;
+
+        const checkDailyITChecksheet = async () => {
+            try {
+                const response = await axios.get(
+                    route("it.daily-checksheet.notification"),
+                    {
+                        headers: {
+                            Accept: "application/json",
+                        },
+                    }
+                );
+
+                if (cancelled) return;
+
+                const {
+                    ticket,
+                    login_token: loginToken,
+                } = response.data;
+
+                if (!ticket?.id || !loginToken) {
+                    return;
+                }
+
+                const notificationStorageKey =
+                    `its_lmc_daily_checksheet_notification_${user.id}`;
+
+                const lastNotifiedLoginToken =
+                    sessionStorage.getItem(
+                        notificationStorageKey
+                    );
+
+                if (lastNotifiedLoginToken === loginToken) {
+                    return;
+                }
+
+                if (ticket.status === "Resolved") {
+                    sessionStorage.setItem(
+                        notificationStorageKey,
+                        loginToken
+                    );
+
+                    return;
+                }
+
+                if (
+                    ticket.status !== "Open" &&
+                    ticket.status !== "Ongoing"
+                ) {
+                    return;
+                }
+
+                if (Notification.permission !== "granted") {
+                    return;
+                }
+
+                const notification = new Notification(
+                    "Daily IT Checksheet Reminder",
+                    {
+                        body:
+                            `${ticket.ticket_no} - IT Department (IT)\n` +
+                            `Status: ${ticket.status}\n` +
+                            "Please complete today's Daily IT Checksheet.",
+                        icon: "/images/LMC-Logo-Wht.png",
+                        tag: `daily-it-checksheet-${loginToken}`,
+                    }
+                );
+
+                sessionStorage.setItem(
+                    notificationStorageKey,
+                    loginToken
+                );
+
+                notification.onclick = () => {
+                    window.focus();
+
+                    window.location.href =
+                        route("tickets.index", {
+                            search: ticket.ticket_no,
+                        });
+
+                    notification.close();
+                };
+            } catch (error) {
+                if (!cancelled) {
+                    console.error(
+                        "Daily IT Checksheet notification error:",
+                        error.response?.status,
+                        error.response?.data || error
+                    );
+                }
+            }
+        };
+
+        checkDailyITChecksheet();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [
+        isSuperAdmin,
+        user?.id,
+        user?.name,
+    ]);
 
     return (
         <div className="min-h-screen flex flex-col bg-[#101E33] text-white dashboard-bg">
